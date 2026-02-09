@@ -12,6 +12,8 @@ importers:
         specifier: ^2.7.5
         version: 2.7.5
 
+  apps/agent: {}
+
   apps/web:
     dependencies:
       '@devcon/utils':

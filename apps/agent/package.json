@@ -1,5 +1,8 @@
 {
   "name": "@devcon/agent",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev":"go run main.go"
+  }
 }
