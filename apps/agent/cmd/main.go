@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	deamon, _ := docker.NewDeamon()
-	dockerApp := app.NewContainerApp(deamon)
+	daemon, _ := docker.NewDaemon()
+	dockerApp := app.NewContainerApp(daemon)
 	dockerApp.List()
 }

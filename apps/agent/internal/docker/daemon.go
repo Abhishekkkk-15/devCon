@@ -7,11 +7,11 @@ import (
 	dockerclient "github.com/moby/moby/client"
 )
 
-type Deamon struct {
+type Daemon struct {
 	client *dockerclient.Client
 }
 
-func NewDeamon() (*Deamon, error) {
+func NewDaemon() (*Daemon, error) {
 	cli, err := dockerclient.New(dockerclient.FromEnv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create docker client: %w", err)
@@ -22,5 +22,5 @@ func NewDeamon() (*Deamon, error) {
 		return nil, fmt.Errorf("failed to ping docker daemon: %w", err)
 	}
 
-	return &Deamon{client: cli}, nil
+	return &Daemon{client: cli}, nil
 }

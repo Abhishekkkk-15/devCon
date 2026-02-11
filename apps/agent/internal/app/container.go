@@ -1,6 +1,8 @@
 package app
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Container struct {
 	ID     string
@@ -24,10 +26,26 @@ func NewContainerApp(d DockerManager) *ContainerApp {
 	}
 }
 
-func (d *ContainerApp) List() {
+func (d *ContainerApp) List() ([]Container, error) {
 	container, err := d.docker.ListContainers()
 	if err != nil {
-		fmt.Printf("error while listing container")
+		return nil, err
 	}
 	fmt.Print(container)
+	return container, nil
+}
+
+func (d *ContainerApp) Start(id string) error {
+	if id == "" {
+		return fmt.Errorf("container id cannot be empty")
+	}
+
+	return d.docker.StartContainers(id)
+}
+
+func (d *ContainerApp) Stop(id string) error {
+	if id == "" {
+		return fmt.Errorf("container id cannot be empty")
+	}
+	return d.docker.StopContainers(id)
 }

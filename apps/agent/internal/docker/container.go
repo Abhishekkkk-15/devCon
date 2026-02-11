@@ -7,7 +7,11 @@ import (
 	dockerclient "github.com/moby/moby/client"
 )
 
-func (d *Deamon) ListContainers() ([]app.Container, error) {
+type ContainerCfg struct {
+	Image string
+}
+
+func (d *Daemon) ListContainers() ([]app.Container, error) {
 	containers, err := d.client.ContainerList(context.Background(), dockerclient.ContainerListOptions{
 		All: true,
 	})
@@ -25,7 +29,7 @@ func (d *Deamon) ListContainers() ([]app.Container, error) {
 	return result, nil
 }
 
-func (d *Deamon) StartContainers(id string) error {
+func (d *Daemon) StartContainers(id string) error {
 	_, err := d.client.ContainerStart(context.Background(), id, dockerclient.ContainerStartOptions{})
 	if err != nil {
 		return err
@@ -33,10 +37,17 @@ func (d *Deamon) StartContainers(id string) error {
 	return nil
 }
 
-func (d *Deamon) StopContainers(id string) error {
+func (d *Daemon) StopContainers(id string) error {
 	_, err := d.client.ContainerStop(context.Background(), id, dockerclient.ContainerStopOptions{})
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (d *Daemon) CreateContainers(cfg *ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+	res, err := d.client.ContainerCreate(context.Background(), dockerclient.ContainerCreateOptions{
+		Image: cfg.Image,
+	})
+	return &res, err
 }
