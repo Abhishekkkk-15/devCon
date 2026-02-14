@@ -2,6 +2,9 @@ package app
 
 import (
 	"fmt"
+
+	"github.com/abhishekkkk-15/devcon/agent/internal/types"
+	dockerclient "github.com/moby/moby/client"
 )
 
 type Container struct {
@@ -14,6 +17,7 @@ type DockerManager interface {
 	ListContainers() ([]Container, error)
 	StartContainers(id string) error
 	StopContainers(id string) error
+	CreateContaiers(cfg *types.ContainerCfg) (*dockerclient.ContainerCreateResult, error)
 }
 
 type ContainerApp struct {
@@ -48,4 +52,12 @@ func (d *ContainerApp) Stop(id string) error {
 		return fmt.Errorf("container id cannot be empty")
 	}
 	return d.docker.StopContainers(id)
+}
+
+func (d *ContainerApp) StartDevconWeb(cfg *types.ContainerCfg) (string, error) {
+	cont, err := d.docker.CreateContaiers(cfg)
+	if err != nil {
+		return "", err
+	}
+	return cont.ID, nil
 }

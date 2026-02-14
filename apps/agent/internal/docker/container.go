@@ -2,14 +2,14 @@ package docker
 
 import (
 	"context"
+	"net/netip"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
+	"github.com/abhishekkkk-15/devcon/agent/internal/types"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/network"
 	dockerclient "github.com/moby/moby/client"
 )
-
-type ContainerCfg struct {
-	Image string
-}
 
 func (d *Daemon) ListContainers() ([]app.Container, error) {
 	containers, err := d.client.ContainerList(context.Background(), dockerclient.ContainerListOptions{
@@ -18,6 +18,7 @@ func (d *Daemon) ListContainers() ([]app.Container, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var result []app.Container
 	for _, c := range containers.Items {
 		result = append(result, app.Container{
@@ -45,9 +46,43 @@ func (d *Daemon) StopContainers(id string) error {
 	return nil
 }
 
-func (d *Daemon) CreateContainers(cfg *ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+func (d *Daemon) CreateContaiers(cfg *types.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+
+	port, err := network.ParsePort(cfg.ContainerPort + "/tcp")
+	if err != nil {
+		return nil, err
+	}
+	ip, err := netip.ParseAddr("0.0.0.0")
+	if err != nil {
+		return nil, err
+	}
+	// **Imp**
+	// 	Container world  ← Config
+	// Host world       ← HostConfig
+
 	res, err := d.client.ContainerCreate(context.Background(), dockerclient.ContainerCreateOptions{
-		Image: cfg.Image,
+		Name: cfg.Name,
+		Config: &container.Config{
+			Image: cfg.Image,
+			ExposedPorts: network.PortSet{
+				port: struct{}{},
+			},
+		},
+		HostConfig: &container.HostConfig{
+			PortBindings: network.PortMap{
+				port: []network.PortBinding{
+					{
+						HostIP:   ip,
+						HostPort: cfg.HostPort,
+					},
+				},
+			},
+		},
 	})
-	return &res, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
 }
