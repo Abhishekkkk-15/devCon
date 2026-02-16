@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { ResourceCard } from '@/components/resources/resource-card';
 import { CreateResourceDialog } from '@/components/resources/create-resource-dialog';
+import { useAiStudio } from '@/components/ai-studio/ai-studio-context';
 
 export type ResourceType = 'compute' | 'postgres' | 'redis';
 export type ResourceStatus = 'CREATING' | 'RUNNING' | 'STOPPED' | 'ERROR';
@@ -82,6 +83,7 @@ const initialResources: Resource[] = [
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>(initialResources);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { openStudio } = useAiStudio();
 
   const handleStart = (id: string) => {
     setResources(resources.map(r =>
@@ -133,6 +135,9 @@ export default function ResourcesPage() {
             onStart={handleStart}
             onStop={handleStop}
             onDelete={handleDelete}
+            onGenerateWithAi={(selectedResource) =>
+              openStudio({ tab: 'compose', resourceType: selectedResource.type })
+            }
           />
         ))}
       </div>

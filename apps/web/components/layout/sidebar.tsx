@@ -10,7 +10,8 @@ import {
   Radio,
   Server,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ const navigation = [
       { name: 'Redis', href: '/resources?type=redis', icon: Radio },
     ],
   },
+  { name: 'AI Studio', href: '/ai-studio', icon: Sparkles },
   { name: 'Agents', href: '/agents', icon: Server },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

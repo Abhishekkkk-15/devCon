@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Cpu, Database, Radio, Play, Square, Trash2 } from 'lucide-react';
+import { Cpu, Database, Radio, Play, Square, Trash2, Sparkles } from 'lucide-react';
 import { Resource } from '@/app/resources/page';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -24,6 +24,7 @@ interface ResourceCardProps {
   onStart: (id: string) => void;
   onStop: (id: string) => void;
   onDelete: (id: string) => void;
+  onGenerateWithAi: (resource: Resource) => void;
 }
 
 const typeIcons = {
@@ -45,7 +46,7 @@ const statusColors = {
   ERROR: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
-export function ResourceCard({ resource, onStart, onStop, onDelete }: ResourceCardProps) {
+export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWithAi }: ResourceCardProps) {
   const Icon = typeIcons[resource.type];
   const isRunning = resource.status === 'RUNNING';
   const isStopped = resource.status === 'STOPPED';
@@ -95,6 +96,11 @@ export function ResourceCard({ resource, onStart, onStop, onDelete }: ResourceCa
             Created {formatDistanceToNow(new Date(resource.createdAt), { addSuffix: true })}
           </p>
         </div>
+
+        <Button variant="secondary" size="sm" className="w-full" onClick={() => onGenerateWithAi(resource)}>
+          <Sparkles className="w-3 h-3 mr-2" />
+          Generate with AI
+        </Button>
 
         <div className="flex gap-2">
           {isStopped && (
