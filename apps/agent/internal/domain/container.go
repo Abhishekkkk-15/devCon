@@ -8,10 +8,11 @@ import (
 
 type ContainerRepository interface {
 	Ping(ctx context.Context) error
-	ListContainers(ctx context.Context) ([]Container, error)
+	ListContainers(ctx context.Context) (dockerclient.ContainerListResult, error)
 	StartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string) error
 	CreateContainer(ctx context.Context, cfg *ContainerCfg) (*dockerclient.ContainerCreateResult, error)
+	InsepectContainer(ctx context.Context, ID string) (dockerclient.ContainerInspectResult, error)
 }
 
 type ContainerCfg struct {
@@ -24,4 +25,14 @@ type Container struct {
 	ID     string
 	Image  string
 	Status string
+}
+
+type DevconStatus struct {
+	ID             string
+	Name           string
+	Image          string
+	State          string
+	HostPort       string
+	ContainerPort  string
+	AlreadyExisted bool
 }

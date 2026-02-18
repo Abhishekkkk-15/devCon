@@ -20,23 +20,15 @@ func (d *Daemon) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (d *Daemon) ListContainers(ctx context.Context) ([]domain.Container, error) {
+func (d *Daemon) ListContainers(ctx context.Context) (dockerclient.ContainerListResult, error) {
 	containers, err := d.client.ContainerList(ctx, dockerclient.ContainerListOptions{
 		All: true,
 	})
 	if err != nil {
-		return nil, err
+		return dockerclient.ContainerListResult{}, err
 	}
 
-	var result []domain.Container
-	for _, c := range containers.Items {
-		result = append(result, domain.Container{
-			ID:     c.ID,
-			Image:  c.Image,
-			Status: c.Status,
-		})
-	}
-	return result, nil
+	return containers, nil
 }
 
 func (d *Daemon) StartContainer(ctx context.Context, id string) error {
@@ -94,4 +86,8 @@ func (d *Daemon) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) 
 	}
 
 	return &res, nil
+}
+
+func (d *Daemon) InsepectContainer(ctx context.Context, ID string) (dockerclient.ContainerInspectResult, error) {
+	return d.client.ContainerInspect(ctx, ID, dockerclient.ContainerInspectOptions{})
 }

@@ -30,12 +30,30 @@ func NewDevconCommand(containerApp *app.ContainerApp) *cobra.Command {
 				HostPort:      hostPort,
 			}
 
-			id, err := containerApp.StartDevconWeb(ctx, cfg)
+			info, err := containerApp.StartDevconWeb(ctx, cfg)
 			if err != nil {
 				return fmt.Errorf("failed to start devcon: %w", err)
 			}
 
-			fmt.Printf("🚀 Devcon started (container: %s)\n", id[:12])
+			if info.AlreadyExisted {
+				fmt.Println("ℹ️  Devcon already existed. Showing current state:")
+			} else {
+				fmt.Println("🚀 Devcon container created successfully.")
+			}
+
+			fmt.Printf(`
+Name:         %s
+Container ID: %s
+Image:        %s
+State:        %s
+Port:         http://localhost:%s
+`,
+				info.Name,
+				info.ID[:12],
+				info.Image,
+				info.State,
+				info.HostPort,
+			)
 			return nil
 		},
 	}
