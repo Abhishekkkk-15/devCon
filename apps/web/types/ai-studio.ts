@@ -1,6 +1,6 @@
 export interface AiGeneratedFile {
   id: string;
-  type: 'dockerfile' | 'compose';
+  type: "dockerfile" | "compose";
   content: string;
   createdAt: string;
 }
@@ -13,7 +13,7 @@ export interface MockFile {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
 }
