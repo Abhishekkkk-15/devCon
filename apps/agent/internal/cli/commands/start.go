@@ -12,6 +12,7 @@ import (
 )
 
 func NewStartServer(containerApp *app.ContainerApp) *cobra.Command {
+	var daemon bool
 
 	cmd := &cobra.Command{
 		Use:   "server",
@@ -21,14 +22,27 @@ func NewStartServer(containerApp *app.ContainerApp) *cobra.Command {
 			if port == "" {
 				port = "8080"
 			}
+
 			systemRepo := system.NewSystemRepo()
 			systemService := service.NewSystemService(systemRepo)
 			systemApp := app.NewSystemApp(systemService)
 			router := http.SetupRouter(systemApp)
-			log.Fatal(router.Run(":" + port))
-			return nil
+
+			if daemon {
+				go func() {
+					if err := router.Run(":" + port); err != nil {
+						log.Println("Server error:", err)
+					}
+				}()
+				log.Println("Server started in background on port", port)
+				return nil
+			}
+
+			log.Println("Server running on port", port)
+			return router.Run(":" + port)
 		},
 	}
 
+	cmd.Flags().BoolVarP(&daemon, "daemon", "d", false, "Run server in background")
 	return cmd
 }
