@@ -11,14 +11,21 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
-type LocalSystemRepository struct{}
+type SystermInterface interface {
+	GetSystemStats(ctx context.Context) domain.SystemStats
+}
 
-func (l *LocalSystemRepository) GetSystemStats(ctx context.Context) (*domain.SystemStats, error) {
+type SystemRepository struct{}
+
+func NewSystemRepo() *SystemRepository {
+	return &SystemRepository{}
+}
+
+func (l *SystemRepository) GetSystemStats(ctx context.Context) (*domain.SystemStats, error) {
 	cpuInfo, err := cpu.Info()
 	if err != nil {
 		return nil, err
 	}
-
 	cpuUsage, err := cpu.Percent(time.Second, false)
 	if err != nil {
 		return nil, err
