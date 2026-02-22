@@ -6,8 +6,6 @@ type SystemRepository interface {
 	GetSystemStats(ctx context.Context) (*SystemStats, error)
 }
 
-type System struct{}
-
 type CPUInfo struct {
 	Model string  `json:"model"`
 	Cores int32   `json:"cores"`
