@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Save, ArrowDownToLine } from 'lucide-react';
+import { Copy, Save, ArrowDownToLine, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/types/ai-studio';
 
 interface AiAssistantProps {
@@ -98,60 +99,101 @@ export function AiAssistant({ onInsert }: AiAssistantProps) {
   };
 
   return (
-    <Card className="h-full border-border/70 bg-card/70 backdrop-blur-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">AI Assistant (DevOps Helper)</CardTitle>
-      </CardHeader>
-      <CardContent className="h-[70vh] flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          {examplePrompts.map((prompt) => (
-            <Button key={prompt} size="sm" variant="outline" onClick={() => void sendPrompt(prompt)}>
-              {prompt}
-            </Button>
-          ))}
-        </div>
+    <div className="h-full flex flex-col gap-4 overflow-hidden">
+      <div className="flex flex-wrap gap-1.5">
+        {examplePrompts.map((prompt) => (
+          <button 
+            key={prompt} 
+            onClick={() => void sendPrompt(prompt)}
+            className="text-[10px] px-2 py-1 rounded-full border border-border bg-muted/30 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all text-muted-foreground font-medium"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
 
-        <div className="flex-1 overflow-auto rounded-md border border-border bg-muted/20 p-3 space-y-3">
-          {messages.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Ask the assistant for Dockerfile and Compose guidance. Responses are locally mocked.</p>
-          ) : (
-            messages.map((message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${message.role === 'user' ? 'bg-secondary text-secondary-foreground' : 'bg-primary/10 border border-primary/20'}`}>
-                  <p className="whitespace-pre-wrap">{message.content || 'Typing...'}</p>
-                  {message.role === 'assistant' && message.content.length > 0 && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={async () => { await navigator.clipboard.writeText(message.content); toast({ title: 'Copied response', description: 'Assistant response copied to clipboard.' }); }}>
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { onInsert(message.content); toast({ title: 'Inserted into editor', description: 'Response appended to selected project file.' }); }}>
-                        <ArrowDownToLine className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => toast({ title: 'Snippet saved', description: 'Snippet saved locally (mock).' })}>
-                        <Save className="h-3.5 w-3.5" />
-                      </Button>
-                      {typingMessageId === message.id && (
-                        <Badge variant="secondary" className="text-[10px]">Typing</Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
+      <div className="flex-1 overflow-auto rounded-xl border border-border/50 bg-muted/10 p-3 space-y-4 shadow-inner custom-scrollbar">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Ask about Dockerfile optimizations, multi-stage builds, or Compose networking.
+            </p>
+          </div>
+        ) : (
+          messages.map((message) => (
+            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={cn(
+                "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed shadow-sm",
+                message.role === 'user' 
+                  ? "bg-primary text-primary-foreground rounded-tr-none" 
+                  : "bg-card border border-border/50 rounded-tl-none"
+              )}>
+                <p className="whitespace-pre-wrap">{message.content || 'Thinking...'}</p>
+                {message.role === 'assistant' && message.content.length > 0 && (
+                  <div className="mt-3 pt-2 border-t border-border/30 flex items-center gap-1">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
+                      onClick={async () => { await navigator.clipboard.writeText(message.content); toast({ title: 'Copied', description: 'Response copied.' }); }}
+                      title="Copy response"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
+                      onClick={() => { onInsert(message.content); toast({ title: 'Inserted', description: 'Appended to editor.' }); }}
+                      title="Insert into editor"
+                    >
+                      <ArrowDownToLine className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
+                      onClick={() => toast({ title: 'Saved', description: 'Snippet bookmarked.' })}
+                      title="Save snippet"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                    </Button>
+                    {typingMessageId === message.id && (
+                      <span className="ml-auto flex h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    )}
+                  </div>
+                )}
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ))
+        )}
+      </div>
 
-        <form
-          className="flex gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void sendPrompt(input);
-          }}
+      <form
+        className="flex gap-2 p-1 bg-muted/20 border border-border/50 rounded-lg focus-within:ring-1 focus-within:ring-primary/30 transition-all"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void sendPrompt(input);
+        }}
+      >
+        <Input 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+          placeholder="Type a message..." 
+          className="border-0 bg-transparent focus-visible:ring-0 text-[12px] h-9"
+        />
+        <Button 
+          type="submit" 
+          size="sm" 
+          disabled={isTyping || input.trim().length === 0}
+          className="h-8 w-8 p-0 rounded-md shrink-0"
         >
-          <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about Docker, Compose, or build optimization..." />
-          <Button type="submit" disabled={isTyping || input.trim().length === 0}>Send</Button>
-        </form>
-      </CardContent>
-    </Card>
+          <ArrowDownToLine className="h-4 w-4 rotate-[-90deg]" />
+        </Button>
+      </form>
+    </div>
   );
 }

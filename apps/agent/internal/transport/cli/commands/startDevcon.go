@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
 	"github.com/spf13/cobra"
 )
 

@@ -8,10 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Copy, Download, Save, Sparkles, Loader2, FileCode2, Plus } from 'lucide-react';
+import { Copy, Download, Save, Sparkles, Loader2, FileCode2, Plus, Wand2, Box } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { CodeEditor } from '@/components/ai-studio/code-editor';
+import { cn } from '@/lib/utils';
 import type { AiStudioPrefill } from '@/components/ai-studio/ai-studio-context';
 
 interface ComposeGeneratorProps {
@@ -168,154 +167,166 @@ export function ComposeGenerator({ prefill, onGenerated }: ComposeGeneratorProps
   };
 
   return (
-    <div className="pt-6 space-y-6">
-      <Card className="border-border/70 bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-base">Docker Compose Generator</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 rounded-md border border-border p-3">
-              <Label className="text-sm">Include services</Label>
-              <div className="space-y-2 pt-1">
-                <label className="flex items-center gap-2 text-sm"><Checkbox checked={includeApp} onCheckedChange={(v) => setIncludeApp(Boolean(v))} /> App</label>
-                <label className="flex items-center gap-2 text-sm"><Checkbox checked={includePostgres} onCheckedChange={(v) => setIncludePostgres(Boolean(v))} /> Postgres</label>
-                <label className="flex items-center gap-2 text-sm"><Checkbox checked={includeRedis} onCheckedChange={(v) => setIncludeRedis(Boolean(v))} /> Redis</label>
-                <label className="flex items-center gap-2 text-sm"><Checkbox checked={includeNginx} onCheckedChange={(v) => setIncludeNginx(Boolean(v))} /> Nginx</label>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>App Port</Label>
-                <Input value={appPort} onChange={(e) => setAppPort(e.target.value)} placeholder="3000" />
-              </div>
-              <div className="space-y-2">
-                <Label>Database Name</Label>
-                <Input value={dbName} onChange={(e) => setDbName(e.target.value)} placeholder="platform_db" />
-              </div>
-            </div>
+    <div className="space-y-6">
+      <div className="space-y-5">
+        {/* Services Selection */}
+        <div className="space-y-3">
+          <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">Included Services</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'app', label: 'App', checked: includeApp, setter: setIncludeApp },
+              { id: 'postgres', label: 'Postgres', checked: includePostgres, setter: setIncludePostgres },
+              { id: 'redis', label: 'Redis', checked: includeRedis, setter: setIncludeRedis },
+              { id: 'nginx', label: 'Nginx', checked: includeNginx, setter: setIncludeNginx },
+            ].map((service) => (
+              <label 
+                key={service.id}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md border border-border/50 transition-colors cursor-pointer",
+                  service.checked ? "bg-primary/5 border-primary/30" : "bg-muted/20 hover:bg-muted/40"
+                )}
+              >
+                <Checkbox 
+                  id={service.id} 
+                  checked={service.checked} 
+                  onCheckedChange={(v) => service.setter(Boolean(v))} 
+                  className="h-4 w-4"
+                />
+                <span className="text-xs font-medium">{service.label}</span>
+              </label>
+            ))}
           </div>
+        </div>
 
+        {/* Configuration Fields */}
+        <div className="grid gap-4">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Environment Variables</Label>
-              <Button size="sm" variant="outline" onClick={() => setEnv((prev) => [...prev, { key: '', value: '' }])}>
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {env.map((pair, idx) => (
-                <div className="grid grid-cols-2 gap-2" key={`${idx}-${pair.key}`}>
-                  <Input placeholder="KEY" value={pair.key} onChange={(e) => updateEnvAt(idx, 'key', e.target.value)} />
-                  <Input placeholder="value" value={pair.value} onChange={(e) => updateEnvAt(idx, 'value', e.target.value)} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-              <Label className="text-sm">Enable volumes</Label>
-              <Switch checked={enableVolumes} onCheckedChange={setEnableVolumes} />
-            </div>
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-              <Label className="text-sm">Enable restart policy</Label>
-              <Switch checked={enableRestartPolicy} onCheckedChange={setEnableRestartPolicy} />
-            </div>
-          </div>
-
-          <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
-            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            Generate docker-compose.yml
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Generated docker-compose.yml</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canAct}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(composeYaml);
-                  toast({ title: 'Copied', description: 'Compose YAML copied.' });
-                }}
-              >
-                <Copy className="mr-2 h-3.5 w-3.5" />
-                Copy
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canAct}
-                onClick={() => {
-                  downloadCompose(composeYaml);
-                  toast({ title: 'Downloaded', description: 'Compose file downloaded.' });
-                }}
-              >
-                <Download className="mr-2 h-3.5 w-3.5" />
-                Download
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canAct}
-                onClick={() => toast({ title: 'Saved to path', description: 'Saved docker-compose.yml to local path (mock).' })}
-              >
-                <Save className="mr-2 h-3.5 w-3.5" />
-                Save to path
-              </Button>
-              <Button size="sm" variant="outline" disabled={!canAct} onClick={() => setEditorOpen(true)}>
-                <FileCode2 className="mr-2 h-3.5 w-3.5" />
-                Open in Editor
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isGenerating ? (
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-[94%]" />
-              <Skeleton className="h-4 w-[86%]" />
-              <Skeleton className="h-4 w-[81%]" />
-              <Skeleton className="h-4 w-[77%]" />
-            </div>
-          ) : (
-            <pre className="max-h-[280px] overflow-auto rounded-md border border-border bg-muted/30 p-4 text-xs leading-6">
-              <code className="font-mono">{composeYaml || '# Generate docker-compose.yml to preview AI output'}</code>
-            </pre>
-          )}
-        </CardContent>
-      </Card>
-
-      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Edit docker-compose.yml</DialogTitle>
-          </DialogHeader>
-          <div className="h-[60vh]">
-            <CodeEditor
-              language="yaml"
-              title="docker-compose.yml"
-              value={editorValue}
-              onChange={setEditorValue}
-              onSave={() => {
-                setComposeYaml(editorValue);
-                onGenerated(editorValue);
-                toast({ title: 'Saved successfully', description: 'Compose content updated in mock project files.' });
-                setEditorOpen(false);
-              }}
+            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">App Port</Label>
+            <Input 
+              value={appPort} 
+              onChange={(e) => setAppPort(e.target.value)} 
+              placeholder="3000" 
+              className="h-9 bg-background/50"
             />
           </div>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">Database Name</Label>
+            <Input 
+              value={dbName} 
+              onChange={(e) => setDbName(e.target.value)} 
+              placeholder="platform_db" 
+              className="h-9 bg-background/50"
+            />
+          </div>
+        </div>
+
+        {/* Env Vars */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">Environment Variables</Label>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-6 text-[10px] px-2 hover:bg-primary/10 hover:text-primary"
+              onClick={() => setEnv((prev) => [...prev, { key: '', value: '' }])}
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              Add Var
+            </Button>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-auto pr-1 custom-scrollbar">
+            {env.map((pair, idx) => (
+              <div className="flex gap-2" key={`${idx}-${pair.key}`}>
+                <Input 
+                  placeholder="KEY" 
+                  value={pair.key} 
+                  onChange={(e) => updateEnvAt(idx, 'key', e.target.value)} 
+                  className="h-8 text-[11px] bg-background/30"
+                />
+                <Input 
+                  placeholder="Value" 
+                  value={pair.value} 
+                  onChange={(e) => updateEnvAt(idx, 'value', e.target.value)} 
+                  className="h-8 text-[11px] bg-background/30"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Switches */}
+        <div className="grid gap-3 pt-2">
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-medium">Persistent Volumes</Label>
+              <p className="text-[10px] text-muted-foreground">Keep data across restarts</p>
+            </div>
+            <Switch checked={enableVolumes} onCheckedChange={setEnableVolumes} className="scale-75" />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-medium">Auto-Restart Policy</Label>
+              <p className="text-[10px] text-muted-foreground">Unless-stopped strategy</p>
+            </div>
+            <Switch checked={enableRestartPolicy} onCheckedChange={setEnableRestartPolicy} className="scale-75" />
+          </div>
+        </div>
+
+        <Button 
+          onClick={handleGenerate} 
+          disabled={isGenerating} 
+          className="w-full h-10 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+        >
+          {isGenerating ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Wand2 className="mr-2 h-4 w-4" />
+          )}
+          {isGenerating ? 'Orchestrating...' : 'Generate Compose Stack'}
+        </Button>
+      </div>
+
+      {canAct && (
+        <div className="pt-4 border-t border-border/50 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Actions</span>
+            <div className="flex gap-1.5">
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-8 w-8"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(composeYaml);
+                  toast({ title: 'Copied', description: 'Compose content copied.' });
+                }}
+                title="Copy to clipboard"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-8 w-8"
+                onClick={() => {
+                  downloadCompose(composeYaml);
+                  toast({ title: 'Downloaded', description: 'Compose file saved.' });
+                }}
+                title="Download file"
+              >
+                <Download className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          
+          {isGenerating && (
+            <div className="space-y-2 p-3 rounded-md bg-muted/30">
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-2 w-[90%]" />
+              <Skeleton className="h-2 w-[70%]" />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

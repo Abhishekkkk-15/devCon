@@ -7,7 +7,7 @@
     "dev": "turbo run dev --parallel",
     "test": "echo \"Error: no test specified\" && exit 1",
     "web":"pnpm --filter @devcon/web run dev",
-    "agent":"go --filter @devcon/agent run dev"
+    "agent":"pnpm --filter @devcon/agent exec go run cmd/agent/main.go"
   },
   "keywords": [],
   "author": "Abhishek Jangid",

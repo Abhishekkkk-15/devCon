@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/util"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -25,10 +25,7 @@ func Connection() *gorm.DB {
 		return nil
 	}
 
-	if os.Getenv("GO_ENV") != "production" {
-		fmt.Println("Connection to Database Successfully")
-		return nil
-	}
+	fmt.Println("Connection to Database Successfully")
 
 	return db
 }

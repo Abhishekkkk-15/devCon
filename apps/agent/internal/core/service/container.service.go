@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
 	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 )

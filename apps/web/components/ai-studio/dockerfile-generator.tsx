@@ -13,10 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Download, Copy, Save, Sparkles, Loader2 } from 'lucide-react';
+import { Download, Copy, Save, Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { CodeEditor } from '@/components/ai-studio/code-editor';
 
 type AppType = 'node' | 'python' | 'go' | 'nextjs' | 'custom';
 type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'pip' | 'go mod';
@@ -125,147 +124,134 @@ export function DockerfileGenerator({ onGenerated }: DockerfileGeneratorProps) {
   };
 
   return (
-    <div className="pt-6 space-y-6">
-      <Card className="border-border/70 bg-card/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-base">Dockerfile Generator</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Application Type</Label>
-              <Select value={appType} onValueChange={(value) => setAppType(value as AppType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="node">Node</SelectItem>
-                  <SelectItem value="python">Python</SelectItem>
-                  <SelectItem value="go">Go</SelectItem>
-                  <SelectItem value="nextjs">Next.js</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Runtime Version</Label>
-              <Input value={runtimeVersion} onChange={(e) => setRuntimeVersion(e.target.value)} placeholder="20" />
-            </div>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Application Type</Label>
+            <Select value={appType} onValueChange={(value) => setAppType(value as AppType)}>
+              <SelectTrigger className="h-9 bg-background/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="node">Node.js</SelectItem>
+                <SelectItem value="python">Python</SelectItem>
+                <SelectItem value="go">Go</SelectItem>
+                <SelectItem value="nextjs">Next.js</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Exposed Port</Label>
-              <Input value={port} onChange={(e) => setPort(e.target.value)} placeholder="3000" />
-            </div>
-            <div className="space-y-2">
-              <Label>Package Manager</Label>
-              <Select value={packageManager} onValueChange={(value) => setPackageManager(value as PackageManager)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="npm">npm</SelectItem>
-                  <SelectItem value="yarn">yarn</SelectItem>
-                  <SelectItem value="pnpm">pnpm</SelectItem>
-                  <SelectItem value="pip">pip</SelectItem>
-                  <SelectItem value="go mod">go mod</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Runtime Version</Label>
+            <Input 
+              value={runtimeVersion} 
+              onChange={(e) => setRuntimeVersion(e.target.value)} 
+              placeholder="e.g. 20" 
+              className="h-9 bg-background/50"
+            />
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-              <Label className="text-sm">Include Production Optimizations</Label>
-              <Switch checked={optimize} onCheckedChange={setOptimize} />
-            </div>
-            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
-              <Label className="text-sm">Multi-stage build</Label>
-              <Switch checked={multiStage} onCheckedChange={setMultiStage} />
-            </div>
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Exposed Port</Label>
+            <Input 
+              value={port} 
+              onChange={(e) => setPort(e.target.value)} 
+              placeholder="3000" 
+              className="h-9 bg-background/50"
+            />
           </div>
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Package Manager</Label>
+            <Select value={packageManager} onValueChange={(value) => setPackageManager(value as PackageManager)}>
+              <SelectTrigger className="h-9 bg-background/50">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="npm">npm</SelectItem>
+                <SelectItem value="yarn">yarn</SelectItem>
+                <SelectItem value="pnpm">pnpm</SelectItem>
+                <SelectItem value="pip">pip</SelectItem>
+                <SelectItem value="go mod">go mod</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
-            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            Generate Dockerfile
-          </Button>
-        </CardContent>
-      </Card>
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-medium">Production Ready</Label>
+              <p className="text-[10px] text-muted-foreground">Optimized base images</p>
+            </div>
+            <Switch checked={optimize} onCheckedChange={setOptimize} className="scale-75" />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <div className="space-y-0.5">
+              <Label className="text-xs font-medium">Multi-stage Build</Label>
+              <p className="text-[10px] text-muted-foreground">Smaller final image size</p>
+            </div>
+            <Switch checked={multiStage} onCheckedChange={setMultiStage} className="scale-75" />
+          </div>
+        </div>
 
-      <Card>
-        <CardHeader className="pb-3">
+        <Button 
+          onClick={handleGenerate} 
+          disabled={isGenerating} 
+          className="w-full h-10 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+        >
+          {isGenerating ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Wand2 className="mr-2 h-4 w-4" />
+          )}
+          {isGenerating ? 'Analyzing Architecture...' : 'Generate Optimized Dockerfile'}
+        </Button>
+      </div>
+
+      {canAct && (
+        <div className="pt-4 border-t border-border/50 space-y-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Generated Dockerfile</CardTitle>
-            <div className="flex gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Actions</span>
+            <div className="flex gap-1.5">
               <Button
-                size="sm"
+                size="icon"
                 variant="outline"
-                disabled={!canAct}
+                className="h-8 w-8"
                 onClick={async () => {
                   await navigator.clipboard.writeText(editorValue);
-                  toast({ title: 'Copied', description: 'Dockerfile copied to clipboard.' });
+                  toast({ title: 'Copied', description: 'Dockerfile content copied.' });
                 }}
+                title="Copy to clipboard"
               >
-                <Copy className="mr-2 h-3.5 w-3.5" />
-                Copy
+                <Copy className="h-3.5 w-3.5" />
               </Button>
               <Button
-                size="sm"
+                size="icon"
                 variant="outline"
-                disabled={!canAct}
+                className="h-8 w-8"
                 onClick={() => {
                   downloadDockerfile(editorValue);
-                  toast({ title: 'Downloaded', description: 'Dockerfile downloaded.' });
+                  toast({ title: 'Downloaded', description: 'Dockerfile saved.' });
                 }}
+                title="Download file"
               >
-                <Download className="mr-2 h-3.5 w-3.5" />
-                Download
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canAct}
-                onClick={() => toast({ title: 'Saved to path', description: 'Saved to local path (mock).' })}
-              >
-                <Save className="mr-2 h-3.5 w-3.5" />
-                Save to local path
+                <Download className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isGenerating ? (
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-[92%]" />
-              <Skeleton className="h-4 w-[88%]" />
-              <Skeleton className="h-4 w-[75%]" />
-              <Skeleton className="h-4 w-[80%]" />
+          
+          {isGenerating && (
+            <div className="space-y-2 p-3 rounded-md bg-muted/30">
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-2 w-[90%]" />
+              <Skeleton className="h-2 w-[70%]" />
             </div>
-          ) : canAct ? (
-            <div className="h-[340px]">
-              <CodeEditor
-                language="dockerfile"
-                title="Dockerfile"
-                value={editorValue}
-                onChange={(nextValue) => {
-                  setEditorValue(nextValue);
-                  setDockerfile(nextValue);
-                }}
-                onSave={() => {
-                  onGenerated(editorValue);
-                  toast({ title: 'Saved successfully', description: 'Dockerfile updated in mock file system.' });
-                }}
-              />
-            </div>
-          ) : (
-            <pre className="max-h-[280px] overflow-auto rounded-md border border-border bg-muted/30 p-4 text-xs leading-6">
-              <code className="font-mono"># Generate a Dockerfile to preview AI output</code>
-            </pre>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }

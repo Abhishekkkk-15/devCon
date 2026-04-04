@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/netip"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	dockerclient "github.com/moby/moby/client"
