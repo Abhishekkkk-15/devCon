@@ -27,7 +27,7 @@ ID:            %s
 Short ID:      %s
 Image:         %s
 Status:        %s
-Created:       %s
+Created:       %d
 Ports:         %v
 Names:         %v
 ==============================================

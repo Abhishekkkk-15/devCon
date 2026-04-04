@@ -13,6 +13,6 @@ func NewSystemRouter(handler *SystemHandler) *SystemRouter {
 
 }
 
-func (h *SystemRouter) SetupSysterRouter(router *gin.Engine) {
-	router.GET("/stats", h.handler.SystemStatsHandler)
+func (h *SystemRouter) SetupSystemRouter(router *gin.RouterGroup) {
+	router.GET("/system/stats", h.handler.SystemStatsHandler)
 }

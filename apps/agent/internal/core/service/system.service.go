@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
-	"github.com/abhishekkkk-15/devcon/agent/internal/system"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/infra/system"
 )
 
 type SystemService struct {

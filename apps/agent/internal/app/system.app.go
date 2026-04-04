@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
-	"github.com/abhishekkkk-15/devcon/agent/internal/service"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/service"
 )
 
 type SystemApp struct {

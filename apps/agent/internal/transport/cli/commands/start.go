@@ -4,14 +4,12 @@ import (
 	"log"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
-	"github.com/abhishekkkk-15/devcon/agent/internal/http"
-	"github.com/abhishekkkk-15/devcon/agent/internal/service"
-	"github.com/abhishekkkk-15/devcon/agent/internal/system"
-	"github.com/abhishekkkk-15/devcon/agent/internal/util"
+	"github.com/abhishekkkk-15/devcon/agent/internal/transport/http"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/util"
 	"github.com/spf13/cobra"
 )
 
-func NewStartServer(containerApp *app.ContainerApp) *cobra.Command {
+func NewStartServer(containerApp *app.ContainerApp, systemApp *app.SystemApp) *cobra.Command {
 	var daemon bool
 
 	cmd := &cobra.Command{
@@ -23,10 +21,7 @@ func NewStartServer(containerApp *app.ContainerApp) *cobra.Command {
 				port = "8080"
 			}
 
-			systemRepo := system.NewSystemRepo()
-			systemService := service.NewSystemService(systemRepo)
-			systemApp := app.NewSystemApp(systemService)
-			router := http.SetupRouter(systemApp)
+			router := http.SetupRouter(systemApp, containerApp)
 
 			if daemon {
 				go func() {

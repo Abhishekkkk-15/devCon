@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/abhishekkkk-15/devcon/agent/internal/domain"
+	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
