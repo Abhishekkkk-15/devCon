@@ -137,6 +137,13 @@ export function ComposeGenerator({ prefill, onGenerated }: ComposeGeneratorProps
       setIncludeApp(true);
       setIncludePostgres(false);
     }
+
+    if (prefill.resourceType === 'custom') {
+      setIncludeApp(false);
+      setIncludePostgres(false);
+      setIncludeRedis(false);
+      setIncludeNginx(false);
+    }
   }, [prefill?.resourceType]);
 
   const canAct = useMemo(() => composeYaml.length > 0, [composeYaml.length]);

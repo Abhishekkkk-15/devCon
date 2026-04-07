@@ -22,14 +22,23 @@ const SERVICE_ENDPOINTS = {
 
 export const container_service: IContainerService = {
   getResources: async () => api.get(SERVICE_ENDPOINTS.RESOURCES()),
-  createResource: async (payload) =>
-    api.post(SERVICE_ENDPOINTS.CREATE(), {
+  createResource: async (payload) => {
+    const body: Record<string, unknown> = {
       name: payload.name,
-      image: payload.image,
-      containerPort: payload.containerPort,
-      hostPort: payload.hostPort,
-      env: payload.env ?? [],
-    }),
+      type: payload.type,
+    };
+
+    if ('compose' in payload) {
+      body.compose = payload.compose;
+    } else {
+      body.image = payload.image;
+      body.containerPort = payload.containerPort;
+      body.hostPort = payload.hostPort;
+      body.env = payload.env ?? [];
+    }
+
+    return api.post(SERVICE_ENDPOINTS.CREATE(), body);
+  },
   startResource: async (id) => api.post(SERVICE_ENDPOINTS.START(id)),
   stopResource: async (id) => api.post(SERVICE_ENDPOINTS.STOP(id)),
   deleteResource: async (id) => api.delete(SERVICE_ENDPOINTS.DELETE(id)),

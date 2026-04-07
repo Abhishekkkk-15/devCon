@@ -18,15 +18,16 @@ import { useState } from 'react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  {
-    name: 'Resources',
-    icon: Box,
-    children: [
-      { name: 'Compute', href: '/resources?type=compute', icon: Cpu },
-      { name: 'Databases', href: '/resources?type=postgres', icon: Database },
-      { name: 'Redis', href: '/resources?type=redis', icon: Radio },
-    ],
-  },
+      {
+        name: 'Resources',
+        icon: Box,
+        children: [
+          { name: 'Compute', href: '/resources?type=compute', icon: Cpu },
+          { name: 'Databases', href: '/resources?type=postgres', icon: Database },
+          { name: 'Redis', href: '/resources?type=redis', icon: Radio },
+          { name: 'Custom Stacks', href: '/resources?type=custom', icon: Sparkles },
+        ],
+      },
   { name: 'AI Studio', href: '/ai-studio', icon: Sparkles },
   { name: 'Agents', href: '/agents', icon: Server },
   { name: 'Settings', href: '/settings', icon: Settings },

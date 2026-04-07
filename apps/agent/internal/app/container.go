@@ -1,8 +1,12 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
@@ -32,11 +36,20 @@ func (a *ContainerApp) ListResources(ctx context.Context) ([]domain.Resource, er
 
 	resources := make([]domain.Resource, 0, len(containers.Items))
 	for _, container := range containers.Items {
+		resourceType := inferResourceType(container.Image)
+		if container.Labels != nil {
+			if val, ok := container.Labels["devcon.resource_type"]; ok && val != "" {
+				resourceType = val
+			} else if _, ok := container.Labels["com.docker.compose.project"]; ok {
+				resourceType = "custom"
+			}
+		}
+
 		resource := domain.Resource{
 			ID:        container.ID,
 			Name:      firstContainerName(container.Names),
 			Image:     container.Image,
-			Type:      inferResourceType(container.Image),
+			Type:      resourceType,
 			Status:    strings.ToUpper(string(container.State)),
 			CreatedAt: container.Created,
 		}
@@ -89,6 +102,14 @@ func (a *ContainerApp) StartDevconWeb(
 		return nil, err
 	}
 
+	cfg.Name = strings.TrimSpace(cfg.Name)
+	if strings.TrimSpace(cfg.Compose) != "" {
+		return a.startComposeStack(ctx, cfg)
+	}
+	if cfg.Type == "" {
+		cfg.Type = "compute"
+	}
+
 	container, err := a.containerService.FindContainer(ctx, cfg.Name)
 	if err != nil {
 		return nil, err
@@ -125,6 +146,49 @@ func (a *ContainerApp) StartDevconWeb(
 	}
 
 	return buildDevconStatus(inspect, false), nil
+}
+
+func (a *ContainerApp) startComposeStack(ctx context.Context, cfg *domain.ContainerCfg) (*domain.DevconStatus, error) {
+	composeContent := strings.TrimSpace(cfg.Compose)
+	if composeContent == "" {
+		return nil, fmt.Errorf("compose payload cannot be empty")
+	}
+
+	project := composeProjectName(cfg.Name)
+
+	tmpFile, err := os.CreateTemp("", fmt.Sprintf("devcon-compose-%s-*.yml", project))
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err := tmpFile.WriteString(composeContent); err != nil {
+		tmpFile.Close()
+		return nil, err
+	}
+
+	if err := tmpFile.Close(); err != nil {
+		return nil, err
+	}
+
+	alreadyRunning, err := isComposeProjectRunning(ctx, tmpFile.Name(), project)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", tmpFile.Name(), "-p", project, "up", "-d")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to start compose stack: %w - %s", err, string(output))
+	}
+
+	return &domain.DevconStatus{
+		ID:             project,
+		Name:           cfg.Name,
+		Image:          "docker-compose stack",
+		State:          "running",
+		AlreadyExisted: alreadyRunning,
+	}, nil
 }
 
 func (a *ContainerApp) EnsureRunning(ctx context.Context, identifier string) error {
@@ -172,6 +236,31 @@ func firstContainerName(names []string) string {
 		}
 	}
 	return ""
+}
+
+var composeProjectRegexp = regexp.MustCompile(`[^a-z0-9]+`)
+
+func isComposeProjectRunning(ctx context.Context, composeFile, project string) (bool, error) {
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "-p", project, "ps", "-q")
+	output, err := cmd.Output()
+	if err != nil {
+		return false, fmt.Errorf("failed to inspect compose stack: %w", err)
+	}
+
+	return len(bytes.TrimSpace(output)) > 0, nil
+}
+
+func composeProjectName(name string) string {
+	base := strings.ToLower(strings.TrimSpace(name))
+	if base == "" {
+		base = "custom-stack"
+	}
+	sanitized := composeProjectRegexp.ReplaceAllString(base, "-")
+	sanitized = strings.Trim(sanitized, "-")
+	if sanitized == "" {
+		return "custom-stack"
+	}
+	return sanitized
 }
 
 func inferResourceType(image string) string {

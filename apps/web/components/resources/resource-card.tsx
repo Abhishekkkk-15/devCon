@@ -30,12 +30,14 @@ const typeIcons = {
   compute: Cpu,
   postgres: Database,
   redis: Radio,
+  custom: Sparkles,
 };
 
 const typeLabels = {
   compute: 'Compute',
   postgres: 'PostgreSQL',
   redis: 'Redis',
+  custom: 'Custom Compose',
 };
 
 const statusColors = {
@@ -52,6 +54,8 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
   const isRunning = resource.status === 'RUNNING';
   const isStopped = resource.status === 'STOPPED' || resource.status === 'EXITED' || resource.status === 'CREATED';
   const createdAt = new Date(resource.created_at * 1000);
+  const hostPorts = resource.host_ports ?? [];
+  const containerPorts = resource.container_ports ?? [];
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -83,8 +87,8 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
           <div>
             <p className="text-xs text-muted-foreground">Ports</p>
             <p className="mt-1 font-medium">
-              {resource.host_ports.length > 0
-                ? resource.host_ports.map((port, index) => `${port}:${resource.container_ports[index] ?? "?"}`).join(', ')
+              {hostPorts.length > 0
+                ? hostPorts.map((port, index) => `${port}:${containerPorts[index] ?? "?"}`).join(', ')
                 : 'No published ports'}
             </p>
           </div>

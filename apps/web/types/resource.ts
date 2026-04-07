@@ -1,4 +1,4 @@
-export type ResourceType = "compute" | "postgres" | "redis";
+export type ResourceType = "compute" | "postgres" | "redis" | "custom";
 
 export type ResourceStatus = "CREATED" | "CREATING" | "RUNNING" | "STOPPED" | "EXITED" | "ERROR";
 
@@ -13,10 +13,20 @@ export interface Resource {
   container_ports: string[];
 }
 
-export interface CreateResourcePayload {
+interface BaseResourcePayload {
   name: string;
+  type: ResourceType;
+}
+
+interface ContainerResourcePayload extends BaseResourcePayload {
   image: string;
   containerPort: string;
   hostPort: string;
   env?: string[];
 }
+
+interface CustomResourcePayload extends BaseResourcePayload {
+  compose: string;
+}
+
+export type CreateResourcePayload = ContainerResourcePayload | CustomResourcePayload;

@@ -17,11 +17,13 @@ type ContainerRepository interface {
 }
 
 type ContainerCfg struct {
-	Image         string
-	Name          string
-	ContainerPort string // "3000"
-	HostPort      string // "3000"
-	Env           []string
+	Image         string   `json:"image"`
+	Name          string   `json:"name"`
+	Type          string   `json:"type"`
+	ContainerPort string   `json:"containerPort"`
+	HostPort      string   `json:"hostPort"`
+	Env           []string `json:"env"`
+	Compose       string   `json:"compose"`
 }
 type Container struct {
 	ID     string

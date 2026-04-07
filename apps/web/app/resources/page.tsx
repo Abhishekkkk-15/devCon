@@ -8,7 +8,7 @@ import { ResourceCard } from '@/components/resources/resource-card';
 import { CreateResourceDialog } from '@/components/resources/create-resource-dialog';
 import { useAiStudio } from '@/components/ai-studio/ai-studio-context';
 import { container_service } from '@/service/container/container.service';
-import { CreateResourcePayload, Resource, ResourceType } from '@/types/resource';
+import { CreateResourcePayload, Resource } from '@/types/resource';
 
 export default function ResourcesPage() {
   const searchParams = useSearchParams();
@@ -81,7 +81,7 @@ export default function ResourcesPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your compute, database, and cache resources
+            Manage compute, database, cache, and custom compose resources
           </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>

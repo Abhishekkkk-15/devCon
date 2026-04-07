@@ -9,7 +9,7 @@ export type StudioTab = 'dockerfile' | 'compose' | 'assistant';
 
 export interface AiStudioPrefill {
   tab?: StudioTab;
-  resourceType?: 'compute' | 'postgres' | 'redis';
+  resourceType?: 'compute' | 'postgres' | 'redis' | 'custom';
 }
 
 interface AiStudioContextValue {

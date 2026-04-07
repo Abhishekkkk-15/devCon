@@ -65,14 +65,22 @@ func (d *Daemon) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) 
 		return nil, err
 	}
 	// **Imp**
-	// 	Container world  ← Config
-	// Host world       ← HostConfig
+	// 	Container world  â† Config
+	// Host world       â† HostConfig
+
+	labels := map[string]string{
+		"devcon.resource_name": cfg.Name,
+	}
+	if cfg.Type != "" {
+		labels["devcon.resource_type"] = cfg.Type
+	}
 
 	res, err := d.client.ContainerCreate(ctx, dockerclient.ContainerCreateOptions{
 		Name: cfg.Name,
 		Config: &container.Config{
-			Image: cfg.Image,
-			Env:   cfg.Env,
+			Image:  cfg.Image,
+			Env:    cfg.Env,
+			Labels: labels,
 			ExposedPorts: network.PortSet{
 				port: struct{}{},
 			},
