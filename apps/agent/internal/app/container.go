@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -20,9 +19,7 @@ type ContainerApp struct {
 }
 
 func NewContainerApp(c service.ContainerService) *ContainerApp {
-	return &ContainerApp{
-		containerService: c,
-	}
+	return &ContainerApp{containerService: c}
 }
 
 func (a *ContainerApp) List(ctx context.Context) (dockerclient.ContainerListResult, error) {
@@ -74,7 +71,13 @@ func (a *ContainerApp) Start(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
-
+	project, err := a.composeProjectForResource(ctx, id)
+	if err != nil {
+		return err
+	}
+	if project != "" {
+		return a.containerService.StartComposeProject(ctx, project)
+	}
 	return a.containerService.StartContainer(ctx, id)
 }
 
@@ -82,7 +85,13 @@ func (a *ContainerApp) Restart(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
-
+	project, err := a.composeProjectForResource(ctx, id)
+	if err != nil {
+		return err
+	}
+	if project != "" {
+		return a.containerService.RestartComposeProject(ctx, project)
+	}
 	return a.containerService.RestartContainer(ctx, id)
 }
 
@@ -90,7 +99,13 @@ func (a *ContainerApp) Stop(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
-
+	project, err := a.composeProjectForResource(ctx, id)
+	if err != nil {
+		return err
+	}
+	if project != "" {
+		return a.containerService.StopComposeProject(ctx, project)
+	}
 	return a.containerService.StopContainer(ctx, id)
 }
 
@@ -98,7 +113,13 @@ func (a *ContainerApp) Delete(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
 	}
-
+	project, err := a.composeProjectForResource(ctx, id)
+	if err != nil {
+		return err
+	}
+	if project != "" {
+		return a.containerService.DeleteComposeProject(ctx, project)
+	}
 	return a.containerService.DeleteContainer(ctx, id)
 }
 
@@ -106,7 +127,6 @@ func (a *ContainerApp) GetResourceDetails(ctx context.Context, id string) (*doma
 	if id == "" {
 		return nil, fmt.Errorf("container id cannot be empty")
 	}
-
 	inspect, err := a.containerService.InsepectContainer(ctx, id)
 	if err != nil {
 		return nil, err
@@ -168,15 +188,10 @@ func (a *ContainerApp) GetResourceLogs(ctx context.Context, id string, tail int)
 	if tail <= 0 {
 		tail = 200
 	}
-
 	return a.containerService.GetContainerLogs(ctx, id, tail)
 }
 
-func (a *ContainerApp) StartDevconWeb(
-	ctx context.Context,
-	cfg *domain.ContainerCfg,
-) (*domain.DevconStatus, error) {
-
+func (a *ContainerApp) StartDevconWeb(ctx context.Context, cfg *domain.ContainerCfg) (*domain.DevconStatus, error) {
 	if err := a.containerService.PingDaemon(ctx); err != nil {
 		return nil, err
 	}
@@ -193,20 +208,16 @@ func (a *ContainerApp) StartDevconWeb(
 	if err != nil {
 		return nil, err
 	}
-
 	if container.ID != "" {
-
 		if container.State != "running" {
 			if err := a.containerService.StartContainer(ctx, container.ID); err != nil {
 				return nil, err
 			}
 		}
-
 		inspect, err := a.containerService.InsepectContainer(ctx, container.ID)
 		if err != nil {
 			return nil, err
 		}
-
 		return buildDevconStatus(inspect, true), nil
 	}
 
@@ -214,16 +225,64 @@ func (a *ContainerApp) StartDevconWeb(
 	if err != nil {
 		return nil, err
 	}
-
 	if err := a.containerService.StartContainer(ctx, created.ID); err != nil {
 		return nil, err
 	}
-
 	inspect, err := a.containerService.InsepectContainer(ctx, created.ID)
 	if err != nil {
 		return nil, err
 	}
+	return buildDevconStatus(inspect, false), nil
+}
 
+func (a *ContainerApp) CreateResource(ctx context.Context, cfg *domain.ContainerCfg) (*domain.DevconStatus, error) {
+	if err := a.containerService.PingDaemon(ctx); err != nil {
+		return nil, err
+	}
+
+	cfg.Name = strings.TrimSpace(cfg.Name)
+	cfg.Image = strings.TrimSpace(cfg.Image)
+	cfg.Type = strings.TrimSpace(cfg.Type)
+	cfg.Compose = strings.TrimSpace(cfg.Compose)
+
+	if cfg.Name == "" {
+		return nil, fmt.Errorf("resource name cannot be empty")
+	}
+	if cfg.Compose != "" {
+		return a.startComposeStack(ctx, cfg)
+	}
+	if cfg.Image == "" {
+		return nil, fmt.Errorf("container image cannot be empty")
+	}
+	if strings.TrimSpace(cfg.ContainerPort) == "" {
+		return nil, fmt.Errorf("container port cannot be empty")
+	}
+	if strings.TrimSpace(cfg.HostPort) == "" {
+		return nil, fmt.Errorf("host port cannot be empty")
+	}
+	if cfg.Type == "" {
+		cfg.Type = inferResourceType(cfg.Image)
+	}
+
+	container, err := a.containerService.FindContainer(ctx, cfg.Name)
+	if err != nil {
+		return nil, err
+	}
+	if container.ID != "" {
+		return nil, fmt.Errorf("resource %s already exists", cfg.Name)
+	}
+
+	created, err := a.containerService.CreateContainer(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if err := a.containerService.StartContainer(ctx, created.ID); err != nil {
+		return nil, err
+	}
+	inspect, err := a.containerService.InsepectContainer(ctx, created.ID)
+	if err != nil {
+		return nil, err
+	}
 	return buildDevconStatus(inspect, false), nil
 }
 
@@ -234,6 +293,20 @@ func (a *ContainerApp) startComposeStack(ctx context.Context, cfg *domain.Contai
 	}
 
 	project := composeProjectName(cfg.Name)
+	existing, err := a.containerService.FindContainersByComposeProject(ctx, project)
+	if err != nil {
+		return nil, err
+	}
+	if len(existing) > 0 {
+		if err := a.containerService.StartComposeProject(ctx, project); err != nil {
+			return nil, err
+		}
+		inspect, err := a.containerService.InsepectContainer(ctx, existing[0].ID)
+		if err != nil {
+			return nil, err
+		}
+		return buildDevconStatus(inspect, true), nil
+	}
 
 	tmpFile, err := os.CreateTemp("", fmt.Sprintf("devcon-compose-%s-*.yml", project))
 	if err != nil {
@@ -245,13 +318,7 @@ func (a *ContainerApp) startComposeStack(ctx context.Context, cfg *domain.Contai
 		tmpFile.Close()
 		return nil, err
 	}
-
 	if err := tmpFile.Close(); err != nil {
-		return nil, err
-	}
-
-	alreadyRunning, err := isComposeProjectRunning(ctx, tmpFile.Name(), project)
-	if err != nil {
 		return nil, err
 	}
 
@@ -261,13 +328,18 @@ func (a *ContainerApp) startComposeStack(ctx context.Context, cfg *domain.Contai
 		return nil, fmt.Errorf("failed to start compose stack: %w - %s", err, string(output))
 	}
 
-	return &domain.DevconStatus{
-		ID:             project,
-		Name:           cfg.Name,
-		Image:          "docker-compose stack",
-		State:          "running",
-		AlreadyExisted: alreadyRunning,
-	}, nil
+	created, err := a.containerService.FindContainersByComposeProject(ctx, project)
+	if err != nil {
+		return nil, err
+	}
+	if len(created) == 0 {
+		return &domain.DevconStatus{ID: project, Name: cfg.Name, Image: "docker-compose stack", State: "running", AlreadyExisted: false}, nil
+	}
+	inspect, err := a.containerService.InsepectContainer(ctx, created[0].ID)
+	if err != nil {
+		return nil, err
+	}
+	return buildDevconStatus(inspect, false), nil
 }
 
 func (a *ContainerApp) EnsureRunning(ctx context.Context, identifier string) error {
@@ -275,28 +347,15 @@ func (a *ContainerApp) EnsureRunning(ctx context.Context, identifier string) err
 	if err != nil {
 		return err
 	}
-
 	if running.ID != "" {
 		return nil
 	}
-
 	return fmt.Errorf("container %s is not running", identifier)
 }
-func buildDevconStatus(
-	inspect dockerclient.ContainerInspectResult,
-	existed bool,
-) *domain.DevconStatus {
 
+func buildDevconStatus(inspect dockerclient.ContainerInspectResult, existed bool) *domain.DevconStatus {
 	c := inspect.Container
-
-	status := &domain.DevconStatus{
-		ID:             c.ID,
-		Name:           strings.TrimPrefix(c.Name, "/"),
-		Image:          c.Config.Image,
-		State:          string(c.State.Status),
-		AlreadyExisted: existed,
-	}
-
+	status := &domain.DevconStatus{ID: c.ID, Name: strings.TrimPrefix(c.Name, "/"), Image: c.Config.Image, State: string(c.State.Status), AlreadyExisted: existed}
 	for port, bindings := range c.NetworkSettings.Ports {
 		if len(bindings) > 0 {
 			status.ContainerPort = string(port.String())
@@ -304,7 +363,6 @@ func buildDevconStatus(
 			break
 		}
 	}
-
 	return status
 }
 
@@ -319,14 +377,15 @@ func firstContainerName(names []string) string {
 
 var composeProjectRegexp = regexp.MustCompile(`[^a-z0-9]+`)
 
-func isComposeProjectRunning(ctx context.Context, composeFile, project string) (bool, error) {
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "-p", project, "ps", "-q")
-	output, err := cmd.Output()
+func (a *ContainerApp) composeProjectForResource(ctx context.Context, identifier string) (string, error) {
+	container, err := a.containerService.FindContainer(ctx, identifier)
 	if err != nil {
-		return false, fmt.Errorf("failed to inspect compose stack: %w", err)
+		return "", err
 	}
-
-	return len(bytes.TrimSpace(output)) > 0, nil
+	if container.ID == "" || container.Labels == nil {
+		return "", nil
+	}
+	return strings.TrimSpace(container.Labels["com.docker.compose.project"]), nil
 }
 
 func composeProjectName(name string) string {
@@ -344,7 +403,6 @@ func composeProjectName(name string) string {
 
 func inferResourceType(image string) string {
 	normalized := strings.ToLower(image)
-
 	switch {
 	case strings.Contains(normalized, "postgres"):
 		return "postgres"

@@ -74,7 +74,7 @@ export function CreateResourceDialog({
   const [hostPort, setHostPort] = useState('3000');
   const [image, setImage] = useState(presets.compute.image ?? '');
   const [containerPort, setContainerPort] = useState(presets.compute.containerPort ?? '');
-  const [env, setEnv] = useState<string[]>(presets.compute.env ?? []);
+  const [envText, setEnvText] = useState((presets.compute.env ?? []).join('\n'));
   const [composeYaml, setComposeYaml] = useState(defaultComposeTemplate);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export function CreateResourceDialog({
     setImage(preset.image ?? '');
     setContainerPort(preset.containerPort ?? '');
     setHostPort(preset.hostPort ?? '3000');
-    setEnv(preset.env ?? []);
+    setEnvText((preset.env ?? []).join('\n'));
   }, [type]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -104,6 +104,11 @@ export function CreateResourceDialog({
         compose: composeYaml.trim(),
       });
     } else {
+      const env = envText
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+
       if (!image || !containerPort || !hostPort) {
         return;
       }
@@ -121,6 +126,7 @@ export function CreateResourceDialog({
     setName('');
     setType('compute');
     setHostPort('3000');
+    setEnvText('');
     setComposeYaml(defaultComposeTemplate);
     onOpenChange(false);
   };
@@ -204,6 +210,19 @@ export function CreateResourceDialog({
                     required
                     className="rounded-2xl border-white/10 bg-white/5"
                   />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="environment">Environment Variables</Label>
+                  <Textarea
+                    id="environment"
+                    rows={4}
+                    placeholder="KEY=value"
+                    value={envText}
+                    onChange={(e) => setEnvText(e.target.value)}
+                    className="rounded-[22px] border-white/10 bg-black/30 font-mono text-xs"
+                  />
+                  <p className="text-xs text-muted-foreground">One `KEY=value` entry per line.</p>
                 </div>
               </>
             )}

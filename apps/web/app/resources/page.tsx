@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus, Sparkles, Cpu, Database, Radio, Boxes } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useAiStudio } from '@/components/ai-studio/ai-studio-context';
 import { container_service } from '@/service/container/container.service';
 import { CreateResourcePayload, Resource } from '@/types/resource';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 const filterPills = [
   { label: 'All', value: null, icon: Boxes },
@@ -20,6 +21,14 @@ const filterPills = [
 ];
 
 export default function ResourcesPage() {
+  return (
+    <Suspense fallback={<div className="section-shell text-sm text-muted-foreground">Loading resources...</div>}>
+      <ResourcesPageContent />
+    </Suspense>
+  );
+}
+
+function ResourcesPageContent() {
   const searchParams = useSearchParams();
   const typeFilter = searchParams.get('type');
   const [resources, setResources] = useState<Resource[]>([]);
@@ -33,6 +42,12 @@ export default function ResourcesPage() {
     try {
       const res = await container_service.getResources();
       setResources(res.data.resources);
+    } catch (err) {
+      toast({
+        title: 'Unable to load resources',
+        description: err instanceof Error ? err.message : 'Docker resources request failed.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -56,6 +71,13 @@ export default function ResourcesPage() {
     try {
       await container_service.startResource(id);
       await fetchResources();
+      toast({ title: 'Resource started', description: `Container ${id.slice(0, 12)} is running.` });
+    } catch (err) {
+      toast({
+        title: 'Start failed',
+        description: err instanceof Error ? err.message : 'Unable to start resource.',
+        variant: 'destructive',
+      });
     } finally {
       setMutatingId(null);
     }
@@ -66,6 +88,13 @@ export default function ResourcesPage() {
     try {
       await container_service.stopResource(id);
       await fetchResources();
+      toast({ title: 'Resource stopped', description: `Container ${id.slice(0, 12)} was stopped.` });
+    } catch (err) {
+      toast({
+        title: 'Stop failed',
+        description: err instanceof Error ? err.message : 'Unable to stop resource.',
+        variant: 'destructive',
+      });
     } finally {
       setMutatingId(null);
     }
@@ -76,6 +105,13 @@ export default function ResourcesPage() {
     try {
       await container_service.restartResource(id);
       await fetchResources();
+      toast({ title: 'Resource restarted', description: `Container ${id.slice(0, 12)} restarted.` });
+    } catch (err) {
+      toast({
+        title: 'Restart failed',
+        description: err instanceof Error ? err.message : 'Unable to restart resource.',
+        variant: 'destructive',
+      });
     } finally {
       setMutatingId(null);
     }
@@ -86,14 +122,33 @@ export default function ResourcesPage() {
     try {
       await container_service.deleteResource(id);
       await fetchResources();
+      toast({ title: 'Resource deleted', description: `Container ${id.slice(0, 12)} was removed.` });
+    } catch (err) {
+      toast({
+        title: 'Delete failed',
+        description: err instanceof Error ? err.message : 'Unable to delete resource.',
+        variant: 'destructive',
+      });
     } finally {
       setMutatingId(null);
     }
   };
 
   const handleCreate = async (resource: CreateResourcePayload) => {
-    await container_service.createResource(resource);
-    await fetchResources();
+    try {
+      await container_service.createResource(resource);
+      await fetchResources();
+      toast({
+        title: 'Resource created',
+        description: `${resource.name} is now available in the Docker fleet.`,
+      });
+    } catch (err) {
+      toast({
+        title: 'Create failed',
+        description: err instanceof Error ? err.message : 'Unable to create resource.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (

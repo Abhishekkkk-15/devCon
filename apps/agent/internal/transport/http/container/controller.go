@@ -15,9 +15,7 @@ type ContainerHandler struct {
 }
 
 func NewContainerHandler(app *app.ContainerApp) *ContainerHandler {
-	return &ContainerHandler{
-		app: app,
-	}
+	return &ContainerHandler{app: app}
 }
 
 func (h *ContainerHandler) ListHandler(c *gin.Context) {
@@ -98,7 +96,6 @@ func (h *ContainerHandler) LogsHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "tail must be a number"})
 		return
 	}
-
 	ctx := context.Background()
 	logs, err := h.app.GetResourceLogs(ctx, id, tail)
 	if err != nil {
@@ -114,7 +111,6 @@ func (h *ContainerHandler) StartDevconHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	ctx := context.Background()
 	status, err := h.app.StartDevconWeb(ctx, &cfg)
 	if err != nil {
@@ -130,13 +126,11 @@ func (h *ContainerHandler) CreateHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	ctx := context.Background()
-	created, err := h.app.StartDevconWeb(ctx, &cfg)
+	created, err := h.app.CreateResource(ctx, &cfg)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusAccepted, created)
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, X, FileJson, Box, MessageSquare, Files, ChevronRight } from 'lucide-react';
@@ -10,7 +9,6 @@ import { ComposeGenerator } from '@/components/ai-studio/compose-generator';
 import { AiAssistant } from '@/components/ai-studio/ai-assistant';
 import { CodeEditor } from '@/components/ai-studio/code-editor';
 import { useAiStudio, type AiStudioPrefill, type StudioTab } from '@/components/ai-studio/ai-studio-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -56,7 +54,6 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
   return (
     <TooltipProvider>
       <div className="h-full flex flex-col bg-background text-foreground overflow-hidden">
-        {/* Top Header */}
         <header className="h-14 border-b border-border px-4 flex items-center justify-between bg-card/50 backdrop-blur-md z-10">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -84,7 +81,6 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
         </header>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Vertical Activity Bar */}
           <nav className="w-14 border-r border-border flex flex-col items-center py-4 bg-muted/20 gap-4">
             <ActivityBarItem
               icon={<FileJson className="h-5 w-5" />}
@@ -114,7 +110,6 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
             </div>
           </nav>
 
-          {/* Sidebar / Configuration Pane */}
           <aside className="w-[400px] border-r border-border bg-card/30 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-auto p-5 custom-scrollbar">
               {activeTab === 'dockerfile' && (
@@ -126,7 +121,7 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
                   <DockerfileGenerator
                     onGenerated={(content) => {
                       saveGeneratedToFile('dockerfile', content);
-                      toast({ title: 'Dockerfile generated', description: 'Mock AI output inserted into project files.' });
+                      toast({ title: 'Dockerfile generated', description: 'Workspace Dockerfile updated.' });
                     }}
                   />
                 </div>
@@ -142,7 +137,7 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
                     prefill={prefill}
                     onGenerated={(content) => {
                       saveGeneratedToFile('compose', content);
-                      toast({ title: 'Compose generated', description: 'Mock AI output inserted into project files.' });
+                      toast({ title: 'Compose generated', description: 'Workspace compose file updated.' });
                     }}
                   />
                 </div>
@@ -161,11 +156,10 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
               )}
             </div>
 
-            {/* Bottom File Explorer in Sidebar */}
             <div className="h-48 border-t border-border flex flex-col bg-muted/10">
               <div className="px-4 py-2 border-b border-border flex items-center justify-between bg-muted/20">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Workspace Files</span>
-                <Badge variant="outline" className="text-[9px] h-4 px-1">MOCK</Badge>
+                <Badge variant="outline" className="text-[9px] h-4 px-1">LOCAL</Badge>
               </div>
               <div className="flex-1 overflow-auto p-2 space-y-1">
                 {fileList.map((file) => (
@@ -181,7 +175,7 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
                     )}
                   >
                     <div className="flex items-center gap-2">
-                      <FileJson className={cn("h-3.5 w-3.5", selectedPath === file.path ? "text-primary" : "text-muted-foreground")} />
+                      <FileJson className={cn('h-3.5 w-3.5', selectedPath === file.path ? 'text-primary' : 'text-muted-foreground')} />
                       <span className="font-mono text-[11px] truncate">{file.path}</span>
                     </div>
                     <span className="text-[9px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -193,7 +187,6 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
             </div>
           </aside>
 
-          {/* Main Editor Pane */}
           <main className="flex-1 bg-muted/5 flex flex-col overflow-hidden">
             <div className="flex-1 p-4 overflow-hidden">
               <CodeEditor
@@ -201,7 +194,7 @@ export function AiStudio({ mode = 'page', prefill, onClose }: AiStudioProps) {
                 title={selectedPath}
                 value={selectedFile?.content ?? ''}
                 onChange={(nextValue) => updateFile(selectedPath, nextValue)}
-                onSave={() => toast({ title: 'Saved successfully', description: `${selectedPath} updated in mock file system.` })}
+                onSave={() => toast({ title: 'Saved successfully', description: `${selectedPath} stored in the local workspace.` })}
               />
             </div>
           </main>
@@ -218,10 +211,10 @@ function ActivityBarItem({ icon, label, active, onClick }: { icon: React.ReactNo
         <button
           onClick={onClick}
           className={cn(
-            "h-10 w-10 flex items-center justify-center rounded-lg transition-all duration-200",
-            active 
-              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105" 
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            'h-10 w-10 flex items-center justify-center rounded-lg transition-all duration-200',
+            active
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           )}
         >
           {icon}

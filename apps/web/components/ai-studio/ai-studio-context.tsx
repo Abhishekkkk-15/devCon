@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AiStudio } from '@/components/ai-studio/ai-studio';
 import type { AiGeneratedFile, MockFile } from '@/types/ai-studio';
@@ -70,6 +70,8 @@ REDIS_URL=redis://localhost:6379`,
 ];
 
 const AiStudioContext = createContext<AiStudioContextValue | undefined>(undefined);
+const STUDIO_FILES_KEY = 'devcon.ai-studio.files';
+const STUDIO_GENERATED_KEY = 'devcon.ai-studio.generated-files';
 
 export function AiStudioProvider({ children }: { children: React.ReactNode }) {
   const [files, setFiles] = useState<MockFile[]>(initialFiles);
@@ -77,6 +79,30 @@ export function AiStudioProvider({ children }: { children: React.ReactNode }) {
   const [selectedPath, setSelectedPath] = useState<string>('Dockerfile');
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [modalPrefill, setModalPrefill] = useState<AiStudioPrefill | null>(null);
+
+  useEffect(() => {
+    try {
+      const storedFiles = window.localStorage.getItem(STUDIO_FILES_KEY);
+      const storedGenerated = window.localStorage.getItem(STUDIO_GENERATED_KEY);
+      if (storedFiles) {
+        setFiles(JSON.parse(storedFiles) as MockFile[]);
+      }
+      if (storedGenerated) {
+        setGeneratedFiles(JSON.parse(storedGenerated) as AiGeneratedFile[]);
+      }
+    } catch {
+      // Fall back to the in-memory defaults when browser storage is unavailable.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STUDIO_FILES_KEY, JSON.stringify(files));
+      window.localStorage.setItem(STUDIO_GENERATED_KEY, JSON.stringify(generatedFiles));
+    } catch {
+      // Ignore browser storage failures and keep the in-memory workspace usable.
+    }
+  }, [files, generatedFiles]);
 
   const selectedFile = useMemo(
     () => files.find((file) => file.path === selectedPath),

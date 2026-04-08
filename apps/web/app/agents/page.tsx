@@ -15,12 +15,13 @@ import { system_service } from "@/service/system/system.service";
 import { SystemStats } from "@/types/system";
 import { container_service } from "@/service/container/container.service";
 import { Resource } from "@/types/resource";
+import { toast } from "@/hooks/use-toast";
 
-const installCommand = `docker run -d --name devplatform-agent \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -e AGENT_TOKEN=your_secret_token \
-  -e PLATFORM_URL=http://localhost:8080 \
-  ghcr.io/devcon/agent:latest`;
+const installCommand = `docker build -t devcon-agent ./apps/agent
+docker run -d --name devcon-agent \\
+  -p 8080:8080 \\
+  -v /var/run/docker.sock:/var/run/docker.sock \\
+  devcon-agent server`;
 
 export default function AgentsPage() {
   const [stats, setStats] = useState<SystemStats>();
@@ -102,7 +103,7 @@ export default function AgentsPage() {
             {[
               { label: "Mode", value: "Local Development" },
               { label: "Operating System", value: stats.host.platform },
-              { label: "Agent Version", value: "v1.4.2" },
+              { label: "Agent Version", value: "local build" },
               { label: "Uptime", value: uptime },
               { label: "Resources Managed", value: `${resources.length} containers` },
               { label: "Last Heartbeat", value: loading ? "Refreshing..." : "Live" },
@@ -188,9 +189,8 @@ export default function AgentsPage() {
               variant="secondary"
               className="absolute right-4 top-4 rounded-2xl border border-white/10 bg-white/10 text-white hover:bg-white/15"
               onClick={() => {
-                navigator.clipboard.writeText(
-                  "docker run -d --name devplatform-agent -v /var/run/docker.sock:/var/run/docker.sock -e AGENT_TOKEN=your_secret_token -e PLATFORM_URL=http://localhost:8080 ghcr.io/devcon/agent:latest"
-                );
+                navigator.clipboard.writeText(installCommand);
+                toast({ title: "Copied", description: "Agent bootstrap command copied." });
               }}
             >
               <Copy className="mr-2 h-3.5 w-3.5" />
@@ -200,7 +200,7 @@ export default function AgentsPage() {
 
           <div className="flex items-start gap-3 rounded-2xl border border-emerald-400/10 bg-emerald-500/5 p-4 text-sm text-emerald-100">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            After installation, the agent will connect to the workspace and immediately expose resource controls, logs, and Docker state.
+            Build the local agent image from `apps/agent/Dockerfile`, then run it with the Docker socket mounted so the web UI can manage local containers and compose-backed resources.
           </div>
         </CardContent>
       </Card>

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { container_service } from '@/service/container/container.service';
 import { Resource, ResourceDetails } from '@/types/resource';
+import { toast } from '@/hooks/use-toast';
 
 interface ResourceInspectorDialogProps {
   resource: Resource;
@@ -45,6 +46,7 @@ export function ResourceInspectorDialog({
   const [logs, setLogs] = useState('');
   const [loading, setLoading] = useState(false);
   const [restarting, setRestarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -55,6 +57,7 @@ export function ResourceInspectorDialog({
 
     async function loadData() {
       setLoading(true);
+      setError(null);
       try {
         const [detailsRes, logsRes] = await Promise.all([
           container_service.getResourceDetails(resource.id),
@@ -67,6 +70,10 @@ export function ResourceInspectorDialog({
 
         setDetails(detailsRes.data.resource);
         setLogs(logsRes.data.logs);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load Docker resource details.');
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -82,8 +89,17 @@ export function ResourceInspectorDialog({
   }, [open, resource.id]);
 
   const handleRefreshLogs = async () => {
-    const logsRes = await container_service.getResourceLogs(resource.id);
-    setLogs(logsRes.data.logs);
+    try {
+      const logsRes = await container_service.getResourceLogs(resource.id);
+      setLogs(logsRes.data.logs);
+      toast({ title: 'Logs refreshed', description: `${resource.name} logs updated.` });
+    } catch (err) {
+      toast({
+        title: 'Unable to refresh logs',
+        description: err instanceof Error ? err.message : 'Docker logs request failed.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleRestart = async () => {
@@ -96,6 +112,13 @@ export function ResourceInspectorDialog({
       ]);
       setDetails(detailsRes.data.resource);
       setLogs(logsRes.data.logs);
+      toast({ title: 'Resource restarted', description: `${resource.name} is restarting.` });
+    } catch (err) {
+      toast({
+        title: 'Restart failed',
+        description: err instanceof Error ? err.message : 'Docker restart request failed.',
+        variant: 'destructive',
+      });
     } finally {
       setRestarting(false);
     }
@@ -128,6 +151,10 @@ export function ResourceInspectorDialog({
 
         {loading ? (
           <div className="py-10 text-sm text-muted-foreground">Loading Docker details...</div>
+        ) : error ? (
+          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-6 text-sm text-rose-100">
+            {error}
+          </div>
         ) : (
           <Tabs defaultValue="details" className="space-y-4">
             <TabsList className="rounded-2xl border border-white/10 bg-white/5">

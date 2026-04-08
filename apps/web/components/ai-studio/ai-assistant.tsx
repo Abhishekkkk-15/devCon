@@ -1,11 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Copy, Save, ArrowDownToLine, Sparkles } from 'lucide-react';
+import { Copy, ArrowDownToLine, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/types/ai-studio';
@@ -21,7 +19,7 @@ const examplePrompts = [
   'Explain multi-stage builds',
 ];
 
-function createMockAssistantResponse(prompt: string) {
+function createAssistantResponse(prompt: string) {
   const normalized = prompt.toLowerCase();
 
   if (normalized.includes('restarting')) {
@@ -43,10 +41,7 @@ function createMockAssistantResponse(prompt: string) {
   return `For this setup, validate base images, dependency install layers, runtime command, and network wiring between services. If you share your Dockerfile or compose YAML, I can propose a concrete patch tailored to your stack.`;
 }
 
-async function typeMessage(
-  fullText: string,
-  onPartial: (partial: string) => void
-) {
+async function typeMessage(fullText: string, onPartial: (partial: string) => void) {
   for (let i = 1; i <= fullText.length; i += 1) {
     onPartial(fullText.slice(0, i));
     await new Promise((resolve) => setTimeout(resolve, 8));
@@ -83,7 +78,7 @@ export function AiAssistant({ onInsert }: AiAssistantProps) {
     setInput('');
     setTypingMessageId(assistantMessage.id);
 
-    const fullResponse = createMockAssistantResponse(prompt);
+    const fullResponse = createAssistantResponse(prompt);
 
     await typeMessage(fullResponse, (partial) => {
       setMessages((prev) =>
@@ -102,8 +97,8 @@ export function AiAssistant({ onInsert }: AiAssistantProps) {
     <div className="h-full flex flex-col gap-4 overflow-hidden">
       <div className="flex flex-wrap gap-1.5">
         {examplePrompts.map((prompt) => (
-          <button 
-            key={prompt} 
+          <button
+            key={prompt}
             onClick={() => void sendPrompt(prompt)}
             className="text-[10px] px-2 py-1 rounded-full border border-border bg-muted/30 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all text-muted-foreground font-medium"
           >
@@ -126,40 +121,31 @@ export function AiAssistant({ onInsert }: AiAssistantProps) {
           messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={cn(
-                "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed shadow-sm",
-                message.role === 'user' 
-                  ? "bg-primary text-primary-foreground rounded-tr-none" 
-                  : "bg-card border border-border/50 rounded-tl-none"
+                'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[12px] leading-relaxed shadow-sm',
+                message.role === 'user'
+                  ? 'bg-primary text-primary-foreground rounded-tr-none'
+                  : 'bg-card border border-border/50 rounded-tl-none'
               )}>
                 <p className="whitespace-pre-wrap">{message.content || 'Thinking...'}</p>
                 {message.role === 'assistant' && message.content.length > 0 && (
                   <div className="mt-3 pt-2 border-t border-border/30 flex items-center gap-1">
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary"
                       onClick={async () => { await navigator.clipboard.writeText(message.content); toast({ title: 'Copied', description: 'Response copied.' }); }}
                       title="Copy response"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary"
                       onClick={() => { onInsert(message.content); toast({ title: 'Inserted', description: 'Appended to editor.' }); }}
                       title="Insert into editor"
                     >
                       <ArrowDownToLine className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-7 w-7 text-muted-foreground hover:text-primary" 
-                      onClick={() => toast({ title: 'Saved', description: 'Snippet bookmarked.' })}
-                      title="Save snippet"
-                    >
-                      <Save className="h-3.5 w-3.5" />
                     </Button>
                     {typingMessageId === message.id && (
                       <span className="ml-auto flex h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -179,15 +165,15 @@ export function AiAssistant({ onInsert }: AiAssistantProps) {
           void sendPrompt(input);
         }}
       >
-        <Input 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)} 
-          placeholder="Type a message..." 
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type a message..."
           className="border-0 bg-transparent focus-visible:ring-0 text-[12px] h-9"
         />
-        <Button 
-          type="submit" 
-          size="sm" 
+        <Button
+          type="submit"
+          size="sm"
           disabled={isTyping || input.trim().length === 0}
           className="h-8 w-8 p-0 rounded-md shrink-0"
         >
