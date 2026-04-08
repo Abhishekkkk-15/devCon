@@ -1,13 +1,37 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { useWorkspace } from '@/components/workspace/workspace-context';
+import { toast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
+  const { currentWorkspace, updateCurrentWorkspace } = useWorkspace();
+  const [workspaceName, setWorkspaceName] = useState(currentWorkspace.name);
+  const [workspaceSlug, setWorkspaceSlug] = useState(currentWorkspace.slug);
+
+  useEffect(() => {
+    setWorkspaceName(currentWorkspace.name);
+    setWorkspaceSlug(currentWorkspace.slug);
+  }, [currentWorkspace]);
+
+  const handleSave = () => {
+    updateCurrentWorkspace({
+      name: workspaceName,
+      slug: workspaceSlug,
+    });
+
+    toast({
+      title: 'Workspace updated',
+      description: 'Header and workspace settings now reflect the active workspace.',
+    });
+  };
+
   return (
     <div className="section-shell space-y-6">
       <section className="surface-panel px-6 py-7 sm:px-8 sm:py-8">
@@ -34,11 +58,21 @@ export default function SettingsPage() {
             <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="workspace-name">Workspace Name</Label>
-                <Input id="workspace-name" defaultValue="Production Workspace" className="rounded-2xl border-white/10 bg-white/5" />
+                <Input
+                  id="workspace-name"
+                  value={workspaceName}
+                  onChange={(event) => setWorkspaceName(event.target.value)}
+                  className="rounded-2xl border-white/10 bg-white/5"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="workspace-slug">Workspace Slug</Label>
-                <Input id="workspace-slug" defaultValue="production" className="rounded-2xl border-white/10 bg-white/5" />
+                <Input
+                  id="workspace-slug"
+                  value={workspaceSlug}
+                  onChange={(event) => setWorkspaceSlug(event.target.value)}
+                  className="rounded-2xl border-white/10 bg-white/5"
+                />
                 <p className="text-xs text-muted-foreground">
                   Used in routes, environment references, and agent metadata.
                 </p>
@@ -126,7 +160,10 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex justify-end">
-        <Button className="rounded-2xl bg-sky-300 px-5 text-slate-950 hover:bg-sky-200">
+        <Button
+          className="rounded-2xl bg-sky-300 px-5 text-slate-950 hover:bg-sky-200"
+          onClick={handleSave}
+        >
           Save Changes
         </Button>
       </div>

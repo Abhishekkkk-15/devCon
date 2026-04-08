@@ -9,8 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useWorkspace } from '@/components/workspace/workspace-context';
 
 export function Header() {
+  const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
+
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-background/80 backdrop-blur-2xl">
       <div className="section-shell py-4">
@@ -26,15 +29,20 @@ export function Header() {
                     <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-amber-100/70">
                       Workspace
                     </span>
-                    <span className="block font-semibold">Production Workspace</span>
+                    <span className="block font-semibold">{currentWorkspace.name}</span>
                   </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem>Production Workspace</DropdownMenuItem>
-                <DropdownMenuItem>Development Workspace</DropdownMenuItem>
-                <DropdownMenuItem>Staging Workspace</DropdownMenuItem>
+                {workspaces.map((workspace) => (
+                  <DropdownMenuItem
+                    key={workspace.id}
+                    onClick={() => setCurrentWorkspace(workspace.id)}
+                  >
+                    {workspace.name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
