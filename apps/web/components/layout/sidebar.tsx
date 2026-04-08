@@ -36,16 +36,16 @@ export function Sidebar() {
   const activeType = searchParams.get('type');
 
   return (
-    <aside className="hidden w-[290px] shrink-0 border-r border-white/10 bg-[#0f1724]/95 xl:flex xl:flex-col">
-      <div className="border-b border-white/10 px-6 py-6">
-        <div className="surface-card overflow-hidden bg-gradient-to-br from-sky-400/14 via-transparent to-amber-300/10 p-5">
+    <aside className="hidden w-[280px] shrink-0 border-r border-black/5 bg-white xl:flex xl:flex-col">
+      <div className="border-b border-black/5 px-6 py-6">
+        <div className="surface-card overflow-hidden bg-muted/20 p-5 border border-black/5 rounded-xl shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-300 text-slate-950 shadow-[0_10px_35px_rgba(56,189,248,0.28)]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
               <Server className="h-5 w-5" />
             </div>
             <div>
-              <p className="eyebrow">Local Control Plane</p>
-              <h1 className="text-lg font-semibold tracking-tight">Devcon</h1>
+              <p className="eyebrow text-muted-foreground">Local Control Plane</p>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">Devcon</h1>
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-muted-foreground">
@@ -56,7 +56,7 @@ export function Sidebar() {
 
       <div className="flex-1 space-y-8 overflow-y-auto px-4 py-6">
         <section className="space-y-2">
-          <p className="px-3 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground/80">
+          <p className="px-3 eyebrow text-muted-foreground">
             Navigation
           </p>
           <div className="space-y-1.5">
@@ -68,26 +68,26 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'group flex items-center justify-between rounded-2xl px-3 py-3 text-sm transition-all',
+                    'group flex items-center justify-between rounded-xl px-3 py-3 text-sm transition-all',
                     active
-                      ? 'bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                      : 'text-muted-foreground hover:bg-white/5 hover:text-white'
+                      ? 'bg-muted/50 text-foreground font-medium shadow-sm border border-black/5'
+                      : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-xl border transition-colors',
+                        'flex h-9 w-9 items-center justify-center rounded-lg border transition-colors',
                         active
-                          ? 'border-sky-300/35 bg-sky-400/12 text-sky-100'
-                          : 'border-white/10 bg-white/5 text-muted-foreground group-hover:text-white'
+                          ? 'border-black/10 bg-white text-primary shadow-sm'
+                          : 'border-transparent bg-transparent text-muted-foreground group-hover:bg-white group-hover:border-black/5 group-hover:text-foreground group-hover:shadow-sm'
                       )}
                     >
                       <item.icon className="h-4 w-4" />
                     </div>
-                    <span className="font-medium">{item.name}</span>
+                    <span>{item.name}</span>
                   </div>
-                  {active && <ArrowUpRight className="h-4 w-4 text-amber-200" />}
+                  {active && <ArrowUpRight className="h-4 w-4 text-muted-foreground" />}
                 </Link>
               );
             })}
@@ -96,7 +96,7 @@ export function Sidebar() {
 
         <section className="space-y-3">
           <div className="px-3">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground/80">
+            <p className="eyebrow text-muted-foreground">
               Resource Views
             </p>
           </div>
@@ -109,8 +109,8 @@ export function Sidebar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition-all',
-                    active ? 'bg-sky-400/10 text-sky-100' : 'text-muted-foreground hover:bg-white/5 hover:text-white'
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all',
+                    active ? 'bg-muted/50 text-foreground font-medium shadow-sm border border-black/5' : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -122,8 +122,8 @@ export function Sidebar() {
         </section>
 
         <section className="px-3">
-          <div className="surface-card ambient-grid overflow-hidden p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-100/80">
+          <div className="surface-card bg-muted/10 p-4 border border-black/5 rounded-xl shadow-sm">
+            <p className="eyebrow text-muted-foreground">
               System Pulse
             </p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">

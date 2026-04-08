@@ -28,17 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} font-sans`}>
         <AppProviders>
-          <div className="flex min-h-screen bg-background text-foreground">
-            <Suspense fallback={<div className="hidden w-[290px] shrink-0 border-r border-white/10 bg-[#0f1724]/95 xl:flex" />}>
+          <div className="flex bg-background text-foreground h-screen overflow-hidden">
+            <Suspense fallback={<div className="hidden w-[280px] shrink-0 border-r border-border bg-muted/20 xl:flex" />}>
               <Sidebar />
             </Suspense>
-            <div className="relative flex min-h-screen flex-1 flex-col overflow-hidden">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_28%)]" />
+            <div className="flex-1 flex flex-col overflow-y-auto">
               <Header />
-              <main className="relative flex-1 overflow-auto">{children}</main>
+              <main className="flex-1 shrink-0">{children}</main>
             </div>
           </div>
         </AppProviders>

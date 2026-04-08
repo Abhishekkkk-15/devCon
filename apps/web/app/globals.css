@@ -4,6 +4,34 @@
 
 @layer base {
   :root {
+    --background: 40 20% 98%;
+    --foreground: 220 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
+    --primary: 220 20% 15%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 92%;
+    --secondary-foreground: 220 20% 15%;
+    --muted: 40 10% 92%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 40 10% 90%;
+    --accent-foreground: 220 20% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 10% 88%;
+    --input: 40 10% 88%;
+    --ring: 220 20% 15%;
+    --chart-1: 220 40% 30%;
+    --chart-2: 60 10% 50%;
+    --chart-3: 158 58% 48%;
+    --chart-4: 269 44% 67%;
+    --chart-5: 337 63% 63%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
     --background: 222 33% 10%;
     --foreground: 42 45% 96%;
     --card: 220 28% 14%;
@@ -28,7 +56,6 @@
     --chart-3: 158 58% 48%;
     --chart-4: 269 44% 67%;
     --chart-5: 337 63% 63%;
-    --radius: 1.25rem;
   }
 
   * {
@@ -42,10 +69,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans), sans-serif;
-    background-image:
-      radial-gradient(circle at top, rgba(94, 234, 212, 0.08), transparent 24%),
-      radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.08), transparent 20%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 28%);
   }
 
   code,
@@ -55,39 +78,31 @@
   }
 
   ::selection {
-    background: rgba(56, 189, 248, 0.35);
-    color: white;
+    background: rgba(0, 0, 0, 0.1);
   }
 }
 
 @layer utilities {
   .surface-panel {
-    @apply rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.28)];
+    @apply rounded-xl bg-white shadow-sm border border-black/5;
   }
 
   .surface-card {
-    @apply rounded-[24px] border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_14px_48px_rgba(0,0,0,0.22)];
+    @apply rounded-lg bg-white shadow-sm border border-black/5 transition-all duration-200;
   }
 
   .section-shell {
-    @apply mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8;
+    @apply mx-auto w-full max-w-[1280px] px-4 py-8 md:px-8 md:py-10;
   }
 
   .eyebrow {
-    @apply text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-amber-200/80;
-  }
-
-  .ambient-grid {
-    background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size: 36px 36px;
+    @apply text-xs font-semibold uppercase tracking-widest text-muted-foreground;
   }
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -95,10 +110,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
 }

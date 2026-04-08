@@ -80,65 +80,51 @@ export default function DashboardPage() {
   const activeResources = resources.slice(0, 4);
 
   return (
-    <div className="section-shell space-y-6">
-      <section className="surface-panel ambient-grid overflow-hidden px-6 py-7 sm:px-8 sm:py-8">
-        <div className="grid gap-8 xl:grid-cols-[1.4fr_0.8fr]">
-          <div className="space-y-5">
-            <p className="eyebrow">Command Center</p>
-            <div className="max-w-3xl space-y-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Operate your local Docker environment without losing the thread.
-              </h1>
-              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                Watch host pressure, keep resource state visible, and move directly into the containers that need work.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-muted-foreground">Agent Status</p>
-                <p className="mt-1 font-semibold text-emerald-200">Connected and healthy</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-muted-foreground">Update Window</p>
-                <p className="mt-1 font-semibold text-white">Every 10 seconds</p>
-              </div>
-            </div>
+    <div className="section-shell space-y-8 animate-in fade-in duration-500">
+      <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Welcome Box / Hero Bento */}
+        <div className="md:col-span-2 surface-panel px-6 py-8 sm:px-8 sm:py-10 bg-white border border-black/5 rounded-2xl shadow-sm relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/[0.02] to-transparent flex translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          <div className="space-y-4 relative z-10">
+            <p className="eyebrow flex items-center gap-2 text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Command Center
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Operate your local Docker environment without losing the thread.
+            </h1>
+            <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+              Watch host pressure, keep resource state visible, and move directly into the containers that need work.
+            </p>
           </div>
+        </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="surface-card p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Live Fleet</p>
-                <Server className="h-4 w-4 text-sky-200" />
-              </div>
-              <p className="mt-4 text-4xl font-semibold text-white">{runningCount}</p>
-              <p className="mt-2 text-sm text-muted-foreground">containers currently serving traffic or workloads</p>
-            </div>
-            <div className="surface-card p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">AI Assist</p>
-                <Sparkles className="h-4 w-4 text-sky-300" />
-              </div>
-              <p className="mt-4 text-lg font-semibold text-white">Generate Dockerfiles and Compose stacks faster</p>
-              <p className="mt-2 text-sm text-muted-foreground">The studio stays close to runtime data instead of isolated from it.</p>
+        {/* Live Fleet Bento */}
+        <div className="surface-card p-6 flex flex-col justify-center border border-black/5 rounded-2xl shadow-sm bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <p className="eyebrow text-muted-foreground">Live Fleet</p>
+            <div className="h-8 w-8 rounded-full bg-primary/5 flex items-center justify-center">
+              <Server className="h-4 w-4 text-primary" />
             </div>
           </div>
+          <p className="text-5xl font-semibold text-foreground tracking-tight">{runningCount}</p>
+          <p className="mt-2 text-sm text-muted-foreground">containers actively serving traffic or workloads</p>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title} className="surface-card border-white/10 bg-white/5">
+          <Card key={stat.title} className="surface-card group hover:border-black/10">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-2">
-                <stat.icon className="h-4 w-4 text-sky-100" />
+              <div className="rounded-lg bg-black/5 p-2 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                <stat.icon className="h-4 w-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-semibold text-white">{stat.value}</div>
+              <div className="text-3xl font-semibold text-foreground tracking-tight">{stat.value}</div>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
                 {stat.description}
               </p>
@@ -147,14 +133,14 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <Card className="surface-card border-white/10 bg-white/5">
-          <CardHeader className="flex flex-row items-center justify-between">
+      <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <Card className="surface-card hover:border-black/10">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-black/5 pb-4 mb-4">
             <div>
-              <p className="eyebrow">Telemetry</p>
-              <CardTitle className="mt-2 text-2xl text-white">CPU usage over time</CardTitle>
+              <p className="eyebrow mb-1 text-muted-foreground">Telemetry</p>
+              <CardTitle className="text-xl text-foreground">CPU usage over time</CardTitle>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-muted-foreground">
+            <div className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-muted-foreground">
               {systemStats ? `${systemStats.cpu.cores} cores` : "Collecting"}
             </div>
           </CardHeader>
@@ -163,32 +149,37 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="surface-card border-white/10 bg-white/5">
-          <CardHeader>
-            <p className="eyebrow">Attention Queue</p>
-            <CardTitle className="mt-2 text-2xl text-white">Recent resources</CardTitle>
+        <Card className="surface-card hover:border-black/10 flex flex-col">
+          <CardHeader className="border-b border-black/5 pb-4 mb-4">
+            <p className="eyebrow mb-1 text-muted-foreground">Attention Queue</p>
+            <CardTitle className="text-xl text-foreground">Recent resources</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="flex-1 flex flex-col gap-3">
             {activeResources.length > 0 ? (
               activeResources.map((resource) => (
                 <div
                   key={resource.id}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                  className="group flex items-center justify-between rounded-xl border border-black/5 bg-white px-4 py-3 hover:border-black/10 hover:shadow-sm transition-all cursor-pointer"
                 >
-                  <div>
-                    <p className="font-medium text-white">{resource.name}</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                      {resource.type}
-                    </p>
+                  <div className="flex items-center gap-3 relative">
+                    <div className="absolute -left-1 w-[2px] h-0 bg-primary transition-all group-hover:h-full group-hover:-left-4 rounded-r-md" />
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{resource.name}</p>
+                      <p className="text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground mt-0.5">
+                        {resource.type}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">{resource.status}</span>
-                    <ArrowRight className="h-4 w-4 text-amber-200" />
+                    <span className="inline-flex items-center rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      {resource.status}
+                    </span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-foreground transition-all" />
                   </div>
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-muted-foreground">
+               <div className="flex-1 flex items-center justify-center rounded-xl border border-dashed border-black/10 bg-black/[0.02] p-8 text-center text-sm text-muted-foreground">
                 No resources available yet.
               </div>
             )}
