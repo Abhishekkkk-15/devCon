@@ -1,1 +1,1 @@
-export const ping = () => "Pong";
+export const ping = () => "Pong ";
