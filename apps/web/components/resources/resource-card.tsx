@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Cpu, Database, Radio, Play, Square, Trash2, Sparkles } from 'lucide-react';
+import { Cpu, Database, Radio, Play, RotateCw, Square, Trash2, Sparkles, Terminal } from 'lucide-react';
 import { Resource } from '@/types/resource';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -14,13 +15,15 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+	AlertDialogTitle,
+	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { ResourceInspectorDialog } from '@/components/resources/resource-inspector-dialog';
 
 interface ResourceCardProps {
   resource: Resource;
   onStart: (id: string) => void;
+  onRestart: (id: string) => void;
   onStop: (id: string) => void;
   onDelete: (id: string) => void;
   onGenerateWithAi: (resource: Resource) => void;
@@ -49,7 +52,8 @@ const statusColors = {
   ERROR: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
-export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWithAi }: ResourceCardProps) {
+export function ResourceCard({ resource, onStart, onRestart, onStop, onDelete, onGenerateWithAi }: ResourceCardProps) {
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const Icon = typeIcons[resource.type];
   const isRunning = resource.status === 'RUNNING';
   const isStopped = resource.status === 'STOPPED' || resource.status === 'EXITED' || resource.status === 'CREATED';
@@ -106,6 +110,10 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
         </Button>
 
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => setIsInspectorOpen(true)}>
+            <Terminal className="w-3 h-3 mr-1" />
+            Inspect
+          </Button>
           {isStopped && (
             <Button
               variant="outline"
@@ -118,15 +126,26 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
             </Button>
           )}
           {isRunning && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => onStop(resource.id)}
-            >
-              <Square className="w-3 h-3 mr-1" />
-              Stop
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => onRestart(resource.id)}
+              >
+                <RotateCw className="w-3 h-3 mr-1" />
+                Restart
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => onStop(resource.id)}
+              >
+                <Square className="w-3 h-3 mr-1" />
+                Stop
+              </Button>
+            </>
           )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -153,6 +172,12 @@ export function ResourceCard({ resource, onStart, onStop, onDelete, onGenerateWi
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <ResourceInspectorDialog
+          resource={resource}
+          open={isInspectorOpen}
+          onOpenChange={setIsInspectorOpen}
+        />
       </CardContent>
     </Card>
   );

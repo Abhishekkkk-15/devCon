@@ -3,6 +3,7 @@ package container
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/app"
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
@@ -49,6 +50,16 @@ func (h *ContainerHandler) StartHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Container started"})
 }
 
+func (h *ContainerHandler) RestartHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := context.Background()
+	if err := h.app.Restart(ctx, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Container restarted"})
+}
+
 func (h *ContainerHandler) StopHandler(c *gin.Context) {
 	id := c.Param("id")
 	ctx := context.Background()
@@ -67,6 +78,34 @@ func (h *ContainerHandler) DeleteHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Container deleted"})
+}
+
+func (h *ContainerHandler) DetailsHandler(c *gin.Context) {
+	id := c.Param("id")
+	ctx := context.Background()
+	details, err := h.app.GetResourceDetails(ctx, id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"resource": details})
+}
+
+func (h *ContainerHandler) LogsHandler(c *gin.Context) {
+	id := c.Param("id")
+	tail, err := strconv.Atoi(c.DefaultQuery("tail", "200"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "tail must be a number"})
+		return
+	}
+
+	ctx := context.Background()
+	logs, err := h.app.GetResourceLogs(ctx, id, tail)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"logs": logs})
 }
 
 func (h *ContainerHandler) StartDevconHandler(c *gin.Context) {

@@ -10,10 +10,13 @@ type ContainerRepository interface {
 	Ping(ctx context.Context) error
 	ListContainers(ctx context.Context) (dockerclient.ContainerListResult, error)
 	StartContainer(ctx context.Context, id string) error
+	RestartContainer(ctx context.Context, id string) error
 	StopContainer(ctx context.Context, id string) error
 	DeleteContainer(ctx context.Context, id string) error
 	CreateContainer(ctx context.Context, cfg *ContainerCfg) (*dockerclient.ContainerCreateResult, error)
 	InsepectContainer(ctx context.Context, ID string) (dockerclient.ContainerInspectResult, error)
+	GetContainerLogs(ctx context.Context, ID string, tail int) (string, error)
+	EnsureImage(ctx context.Context, image string) error
 }
 
 type ContainerCfg struct {
@@ -50,4 +53,20 @@ type Resource struct {
 	CreatedAt     int64    `json:"created_at"`
 	HostPorts     []string `json:"host_ports"`
 	ContainerPort []string `json:"container_ports"`
+}
+
+type ResourceDetails struct {
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Image          string            `json:"image"`
+	Type           string            `json:"type"`
+	Status         string            `json:"status"`
+	CreatedAt      int64             `json:"created_at"`
+	HostPorts      []string          `json:"host_ports"`
+	ContainerPorts []string          `json:"container_ports"`
+	Command        []string          `json:"command"`
+	Env            []string          `json:"env"`
+	Labels         map[string]string `json:"labels"`
+	Networks       []string          `json:"networks"`
+	Mounts         []string          `json:"mounts"`
 }

@@ -60,6 +60,16 @@ export default function ResourcesPage() {
     }
   };
 
+  const handleRestart = async (id: string) => {
+    setMutatingId(id);
+    try {
+      await container_service.restartResource(id);
+      await fetchResources();
+    } finally {
+      setMutatingId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     setMutatingId(id);
     try {
@@ -96,6 +106,7 @@ export default function ResourcesPage() {
             key={resource.id}
             resource={resource}
             onStart={() => void handleStart(resource.id)}
+            onRestart={() => void handleRestart(resource.id)}
             onStop={() => void handleStop(resource.id)}
             onDelete={() => void handleDelete(resource.id)}
             onGenerateWithAi={(selectedResource) =>

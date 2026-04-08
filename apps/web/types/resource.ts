@@ -13,6 +13,14 @@ export interface Resource {
   container_ports: string[];
 }
 
+export interface ResourceDetails extends Resource {
+  command: string[];
+  env: string[];
+  labels: Record<string, string>;
+  networks: string[];
+  mounts: string[];
+}
+
 interface BaseResourcePayload {
   name: string;
   type: ResourceType;

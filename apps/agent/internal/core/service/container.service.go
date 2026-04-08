@@ -29,6 +29,11 @@ func (c *ContainerService) ListContainers(ctx context.Context) (dockerclient.Con
 func (c *ContainerService) StartContainer(ctx context.Context, id string) error {
 	return c.repo.StartContainer(ctx, id)
 }
+
+func (c *ContainerService) RestartContainer(ctx context.Context, id string) error {
+	return c.repo.RestartContainer(ctx, id)
+}
+
 func (c *ContainerService) StopContainer(ctx context.Context, id string) error {
 	return c.repo.StopContainer(ctx, id)
 }
@@ -38,6 +43,10 @@ func (c *ContainerService) DeleteContainer(ctx context.Context, id string) error
 }
 
 func (c *ContainerService) CreateContainer(ctx context.Context, cfg *domain.ContainerCfg) (*dockerclient.ContainerCreateResult, error) {
+	if err := c.repo.EnsureImage(ctx, cfg.Image); err != nil {
+		return nil, err
+	}
+
 	res, err := c.repo.CreateContainer(ctx, cfg)
 	if err != nil {
 		return nil, err
@@ -52,6 +61,10 @@ func (c *ContainerService) InsepectContainer(ctx context.Context, ID string) (do
 		return dockerclient.ContainerInspectResult{}, err
 	}
 	return container, nil
+}
+
+func (c *ContainerService) GetContainerLogs(ctx context.Context, ID string, tail int) (string, error) {
+	return c.repo.GetContainerLogs(ctx, ID, tail)
 }
 
 func (c *ContainerService) IsContainerRunning(ctx context.Context, identifier string) (container.Summary, error) {

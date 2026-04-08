@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/domain"
 	"github.com/abhishekkkk-15/devcon/agent/internal/core/service"
@@ -77,6 +78,14 @@ func (a *ContainerApp) Start(ctx context.Context, id string) error {
 	return a.containerService.StartContainer(ctx, id)
 }
 
+func (a *ContainerApp) Restart(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("container id cannot be empty")
+	}
+
+	return a.containerService.RestartContainer(ctx, id)
+}
+
 func (a *ContainerApp) Stop(ctx context.Context, id string) error {
 	if id == "" {
 		return fmt.Errorf("container id cannot be empty")
@@ -91,6 +100,76 @@ func (a *ContainerApp) Delete(ctx context.Context, id string) error {
 	}
 
 	return a.containerService.DeleteContainer(ctx, id)
+}
+
+func (a *ContainerApp) GetResourceDetails(ctx context.Context, id string) (*domain.ResourceDetails, error) {
+	if id == "" {
+		return nil, fmt.Errorf("container id cannot be empty")
+	}
+
+	inspect, err := a.containerService.InsepectContainer(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceType := inferResourceType(inspect.Container.Config.Image)
+	if inspect.Container.Config.Labels != nil {
+		if val, ok := inspect.Container.Config.Labels["devcon.resource_type"]; ok && val != "" {
+			resourceType = val
+		} else if _, ok := inspect.Container.Config.Labels["com.docker.compose.project"]; ok {
+			resourceType = "custom"
+		}
+	}
+
+	details := &domain.ResourceDetails{
+		ID:             inspect.Container.ID,
+		Name:           strings.TrimPrefix(inspect.Container.Name, "/"),
+		Image:          inspect.Container.Config.Image,
+		Type:           resourceType,
+		Status:         strings.ToUpper(string(inspect.Container.State.Status)),
+		CreatedAt:      0,
+		Command:        inspect.Container.Config.Cmd,
+		Env:            inspect.Container.Config.Env,
+		Labels:         inspect.Container.Config.Labels,
+		HostPorts:      make([]string, 0),
+		ContainerPorts: make([]string, 0),
+		Networks:       make([]string, 0),
+		Mounts:         make([]string, 0),
+	}
+
+	for port, bindings := range inspect.Container.NetworkSettings.Ports {
+		details.ContainerPorts = append(details.ContainerPorts, fmt.Sprintf("%d", port.Num()))
+		if len(bindings) > 0 {
+			details.HostPorts = append(details.HostPorts, bindings[0].HostPort)
+		}
+	}
+
+	for networkName := range inspect.Container.NetworkSettings.Networks {
+		details.Networks = append(details.Networks, networkName)
+	}
+
+	for _, mount := range inspect.Container.Mounts {
+		if mount.Source != "" && mount.Destination != "" {
+			details.Mounts = append(details.Mounts, fmt.Sprintf("%s:%s", mount.Source, mount.Destination))
+		}
+	}
+
+	if createdAt, err := time.Parse(time.RFC3339Nano, inspect.Container.Created); err == nil {
+		details.CreatedAt = createdAt.Unix()
+	}
+
+	return details, nil
+}
+
+func (a *ContainerApp) GetResourceLogs(ctx context.Context, id string, tail int) (string, error) {
+	if id == "" {
+		return "", fmt.Errorf("container id cannot be empty")
+	}
+	if tail <= 0 {
+		tail = 200
+	}
+
+	return a.containerService.GetContainerLogs(ctx, id, tail)
 }
 
 func (a *ContainerApp) StartDevconWeb(
